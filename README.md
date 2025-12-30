@@ -21,3 +21,11 @@ This will generate the following folders:
 - bin
 - publish
 - wwwroot
+
+## Hosting:
+
+#### Note: This project has only been tested on dedicated VPS running Ubuntu!
+
+Using any software that allows file transfers using FTP<br>
+1. Move the contents of `MangaReader/bin/Release/net10.0/linux-x64/` folder into the root folder of your projec on your VPS.<br>
+2. Move both folders `wwwroot` and `publish` in the same folder.
