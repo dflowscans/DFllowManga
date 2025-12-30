@@ -11,35 +11,35 @@ var builder = WebApplication.CreateBuilder(args);
 var mysqlHost = Environment.GetEnvironmentVariable("MYSQL_HOST");
 if (string.IsNullOrWhiteSpace(mysqlHost))
 {
-    mysqlHost = "5.175.192.162";
+    mysqlHost = "";
     Environment.SetEnvironmentVariable("MYSQL_HOST", mysqlHost);
 }
 
 var mysqlPort = Environment.GetEnvironmentVariable("MYSQL_PORT");
 if (string.IsNullOrWhiteSpace(mysqlPort))
 {
-    mysqlPort = "3306";
+    mysqlPort = "";
     Environment.SetEnvironmentVariable("MYSQL_PORT", mysqlPort);
 }
 
 var mysqlDb = Environment.GetEnvironmentVariable("MYSQL_DB");
 if (string.IsNullOrWhiteSpace(mysqlDb))
 {
-    mysqlDb = "s14_DFlowScans";
+    mysqlDb = "";
     Environment.SetEnvironmentVariable("MYSQL_DB", mysqlDb);
 }
 
 var mysqlUser = Environment.GetEnvironmentVariable("MYSQL_USER");
 if (string.IsNullOrWhiteSpace(mysqlUser))
 {
-    mysqlUser = "u14_FI3QF79zRV";
+    mysqlUser = "";
     Environment.SetEnvironmentVariable("MYSQL_USER", mysqlUser);
 }
 
 var mysqlPassword = Environment.GetEnvironmentVariable("MYSQL_PASSWORD");
 if (string.IsNullOrWhiteSpace(mysqlPassword))
 {
-    mysqlPassword = "9@8z=a4WrE=6oToZrKBN@4Zv";
+    mysqlPassword = "";
     Environment.SetEnvironmentVariable("MYSQL_PASSWORD", mysqlPassword);
 }
 
