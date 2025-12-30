@@ -1,6 +1,12 @@
 # DFlowMangaCMS
 A custom MangaCMS built on NET.ASP MVC and Razor pages.
 
+## ⚠️ Warning:
+- Uploading actual image files as chapter pages does **NOT** work.<br>
+
+Please don't make any issues about that.<br>
+I plan to add it in the somewhat near future.
+
 #### Note: Only this README will be updated. The others you see in this repo will NOT be updated.
 
 # 🌍 Environment Configuration Guide
