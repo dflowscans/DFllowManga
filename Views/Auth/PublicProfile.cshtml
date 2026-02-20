@@ -1,0 +1,300 @@
+@using MangaReader.Models
+@{
+    var user = ViewBag.User as User;
+    var bookmarks = ViewBag.Bookmarks as List<UserBookmark>;
+    var stats = ViewBag.ReadingStats;
+    var unlockedDecorations = (ViewBag.UnlockedDecorations as List<UserUnlockedDecoration>) ?? new List<UserUnlockedDecoration>();
+    var unlockedTitles = (ViewBag.UnlockedTitles as List<UserUnlockedTitle>) ?? new List<UserUnlockedTitle>();
+    ViewData["Title"] = user?.Username + "'s Profile";
+}
+
+<div class="container py-4">
+    
+    <div class="card mb-4" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 15px; overflow: hidden;">
+        <div class="card-body p-4">
+            <div class="row">
+                <div class="col-md-auto text-center mb-3 mb-md-0">
+                    @{
+                        string defaultAvatar = "https://wallpapers-clan.com/wp-content/uploads/2022/08/default-pfp-24.jpg";
+                        string profileAvatarUrl = !string.IsNullOrWhiteSpace(user?.ProfilePicture) 
+                            ? user.ProfilePicture 
+                            : (!string.IsNullOrWhiteSpace(user?.AvatarUrl) 
+                                ? user.AvatarUrl 
+                                : defaultAvatar);
+                    }
+                    <div class="position-relative d-inline-flex align-items-center justify-content-center" style="width:120px; height:120px;">
+                        <img src="@profileAvatarUrl" alt="Avatar" style="width:100%; height:100%; border-radius:50%; object-fit:cover; border:3px solid var(--primary-color); z-index: 1; position: relative;" onerror="this.src='@defaultAvatar'" />
+                        @if (user?.EquippedDecoration != null)
+                        {
+                            <img src="@user.EquippedDecoration.ImageUrl" alt="Decoration" style="position: absolute; top: 50%; left: 50%; width: 120%; height: 120%; transform: translate(-50%, -50%); pointer-events: none; z-index: 2;" />
+                        }
+                    </div>
+                </div>
+                <div class="col-md d-flex flex-column">
+                    <div class="flex-grow-1">
+                        <div class="d-flex flex-wrap align-items-center gap-3 mb-2">
+                            <h2 class="mb-0 text-white" style="font-weight: 700;">@user?.Username</h2>
+                            @if (user != null && user.IsAdmin)
+                            {
+                                <span class="badge bg-danger">Admin</span>
+                            }
+                            else if (user != null && user.IsSubAdmin)
+                            {
+                                <span class="badge bg-warning text-dark">Sub-Admin</span>
+                            }
+                        </div>
+
+                        <div class="d-flex flex-wrap align-items-center gap-3 mb-3">
+                            @if (user?.EquippedTitle != null)
+                            {
+                                <span class="badge" style="background: rgba(0,0,0,0.3); border: 1px solid @(user.EquippedTitle.Color ?? "transparent"); color: @(user.EquippedTitle.Color ?? "inherit"); font-weight: bold; font-size: 0.9rem; padding: 5px 12px;">
+                                    @user.EquippedTitle.Name
+                                </span>
+                            }
+                            <div class="d-flex align-items-center gap-2">
+                                <div class="progress" style="height: 10px; width: 120px; background: var(--bg-tertiary); border-radius: 5px; margin-bottom: 0;">
+                                    <div class="progress-bar progress-bar-striped progress-bar-animated" role="progressbar" 
+                                         style="width: @ViewBag.XpProgress%; background: linear-gradient(90deg, #6366f1, #ec4899);" 
+                                         aria-valuenow="@user?.XP" aria-valuemin="0" aria-valuemax="@ViewBag.XpToNextLevel"></div>
+                                </div>
+                                <small class="text-white-50">@user?.XP / @ViewBag.XpToNextLevel XP</small>
+                            </div>
+                            <span class="badge bg-primary">Level @user?.Level</span>
+                        </div>
+                    </div>
+
+                    <div class="d-flex flex-wrap gap-4 align-items-center mt-auto">
+                        <div class="d-flex align-items-center gap-2 px-3 py-2" style="background: rgba(255,255,255,0.05); border-radius: 10px; border: 1px solid var(--border-color);">
+                            <i class="fas fa-comments text-primary"></i>
+                            <div>
+                                <div class="text-white-50" style="font-size: 0.7rem; text-uppercase: uppercase; letter-spacing: 0.5px;">Comments</div>
+                                <div class="h6 mb-0 text-white fw-bold">@ViewBag.TotalComments</div>
+                            </div>
+                        </div>
+                        <div class="d-flex align-items-center gap-2 px-3 py-2" style="background: rgba(255,255,255,0.05); border-radius: 10px; border: 1px solid var(--border-color);">
+                            <i class="fas fa-calendar-alt text-white"></i>
+                            <div>
+                                <div class="text-white-50" style="font-size: 0.7rem; text-uppercase: uppercase; letter-spacing: 0.5px;">Joined</div>
+                                <div class="h6 mb-0 text-white fw-bold">@(user?.CreatedAt.ToString("MMM yyyy"))</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    @if (unlockedTitles.Any() || unlockedDecorations.Any())
+    {
+        <div class="card mb-4" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px;">
+            <div class="card-header" style="background: var(--bg-tertiary); border-bottom: 1px solid var(--border-color);">
+                <h5 class="mb-0 text-white"><i class="fas fa-trophy me-2 text-warning"></i>Collection</h5>
+            </div>
+            <div class="card-body">
+                @if (unlockedTitles.Any())
+                {
+                    <h6 class="text-white-50 small text-uppercase mb-3">Unlocked Titles</h6>
+                    <div class="d-flex flex-wrap gap-2 mb-4">
+                        @foreach (var ut in unlockedTitles)
+                        {
+                            if (ut.Title != null)
+                            {
+                                <span class="badge" style="background: rgba(0,0,0,0.3); border: 1px solid @(ut.Title.Color ?? "transparent"); color: @(ut.Title.Color ?? "inherit"); font-weight: bold; font-size: 0.8rem; padding: 5px 12px;">
+                                    @ut.Title.Name
+                                </span>
+                            }
+                        }
+                    </div>
+                }
+
+                @if (unlockedDecorations.Any())
+                {
+                    <h6 class="text-white-50 small text-uppercase mb-3">Unlocked Decorations</h6>
+                    <div class="row g-3">
+                        @foreach (var ud in unlockedDecorations)
+                        {
+                            if (ud.Decoration != null)
+                            {
+                                <div class="col-auto">
+                                    <div class="position-relative d-flex align-items-center justify-content-center" style="width: 60px; height: 60px; background: rgba(0,0,0,0.2); border-radius: 8px; border: 1px solid var(--border-color);" title="@ud.Decoration.Name">
+                                        <img src="@profileAvatarUrl" alt="Avatar" style="width: 80%; height: 80%; border-radius: 50%; opacity: 0.3;" />
+                                        <img src="@ud.Decoration.ImageUrl" alt="@ud.Decoration.Name" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%;" />
+                                    </div>
+                                </div>
+                            }
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    }
+
+    <div class="row">
+        
+        <div class="col-lg-4">
+            @if (user == null || !user.HideReadingList)
+            {
+                <div class="card mb-4" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px;">
+                    <div class="card-header" style="background: var(--bg-tertiary); border-bottom: 1px solid var(--border-color);">
+                        <h5 class="mb-0 text-white"><i class="fas fa-chart-pie me-2"></i>Reading Stats</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="d-flex flex-column gap-3">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-white"><i class="fas fa-book-open me-2 text-primary"></i>Reading</span>
+                                <span class="badge bg-primary text-white rounded-pill">@stats.Reading</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-white"><i class="fas fa-check-circle me-2 text-success"></i>Completed</span>
+                                <span class="badge bg-success text-white rounded-pill">@stats.Completed</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-white"><i class="fas fa-pause-circle me-2 text-warning"></i>On Hold</span>
+                                <span class="badge bg-warning text-white rounded-pill">@stats.OnHold</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-white"><i class="fas fa-times-circle me-2 text-danger"></i>Dropped</span>
+                                <span class="badge bg-danger text-white rounded-pill">@stats.Dropped</span>
+                            </div>
+                            <div class="d-flex justify-content-between align-items-center">
+                                <span class="text-white"><i class="fas fa-bookmark me-2 text-info"></i>Plan to Read</span>
+                                <span class="badge bg-info text-white rounded-pill">@stats.PlanToRead</span>
+                            </div>
+                            <hr style="border-color: var(--border-color); margin: 0.5rem 0;">
+                            <div class="d-flex justify-content-between align-items-center">
+                                <strong class="text-white">Total Series</strong>
+                                <strong class="text-white">@stats.Total</strong>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+            else
+            {
+                <div class="card mb-4" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px;">
+                    <div class="card-body text-center py-4">
+                        <i class="fas fa-user-shield fa-2x mb-3 text-primary"></i>
+                        <h6 class="text-white">Private Profile</h6>
+                        <p class="text-muted small mb-0">This user's reading activity is hidden.</p>
+                    </div>
+                </div>
+            }
+
+            @if (!string.IsNullOrEmpty(user?.CustomCss))
+            {
+                <div class="card mb-4" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px;">
+                    <div class="card-header d-flex justify-content-between align-items-center" style="background: var(--bg-tertiary); border-bottom: 1px solid var(--border-color);">
+                        <h5 class="mb-0 text-white"><i class="fas fa-code me-2"></i>Custom CSS</h5>
+                        <button class="btn btn-sm btn-outline-primary" onclick="copyCustomCss(this)" data-css="@user.CustomCss">
+                            <i class="fas fa-copy me-1"></i>Copy
+                        </button>
+                    </div>
+                    <div class="card-body p-0">
+                        <pre class="m-0 p-3" style="max-height: 200px; overflow-y: auto; font-size: 0.8rem; background: rgba(0,0,0,0.2); color: var(--text-secondary); font-family: monospace;"><code>@user.CustomCss</code></pre>
+                    </div>
+                </div>
+            }
+        </div>
+
+        
+        <div class="col-lg-8">
+            <div class="card" style="background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px;">
+                <div class="card-header d-flex justify-content-between align-items-center" style="background: var(--bg-tertiary); border-bottom: 1px solid var(--border-color);">
+                    <h5 class="mb-0 text-white"><i class="fas fa-list me-2"></i>Reading List</h5>
+                </div>
+                <div class="card-body">
+                    @if (user != null && user.HideReadingList)
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-lock fa-3x mb-3 text-white opacity-50"></i>
+                            <h5 class="text-white opacity-75">This user has hidden their reading list.</h5>
+                        </div>
+                    }
+                    else if (bookmarks == null || !bookmarks.Any())
+                    {
+                        <div class="text-center py-5">
+                            <i class="fas fa-book fa-3x mb-3 text-white opacity-50"></i>
+                            <h5 class="text-white opacity-75">No series in the reading list yet.</h5>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="table-responsive">
+                            <table class="table table-dark table-hover mb-0" style="background: transparent;">
+                                <thead>
+                                    <tr style="border-bottom: 2px solid var(--border-color);">
+                                        <th>Series</th>
+                                        <th class="text-center">Status</th>
+                                        <th class="text-end">Updated</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    @foreach (var bookmark in bookmarks.OrderByDescending(b => b.UpdatedAt))
+                                    {
+                                        <tr style="border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                            <td class="align-middle">
+                                                <a href="@Url.Action("Detail", "Series", new { id = bookmark.MangaId })" class="text-decoration-none d-flex align-items-center gap-3">
+                                                    <img src="@bookmark.Manga?.ImageUrl" alt="@bookmark.Manga?.Title" style="width: 40px; height: 55px; object-fit: cover; border-radius: 4px;" />
+                                                    <span class="text-white fw-bold">@bookmark.Manga?.Title</span>
+                                                </a>
+                                            </td>
+                                            <td class="text-center align-middle">
+                                                @{
+                                                    string statusClass = bookmark.Status switch
+                                                    {
+                                                        BookmarkStatus.Reading => "bg-primary",
+                                                        BookmarkStatus.Completed => "bg-success",
+                                                        BookmarkStatus.OnHold => "bg-warning text-dark",
+                                                        BookmarkStatus.Dropped => "bg-danger",
+                                                        BookmarkStatus.PlanToRead => "bg-info",
+                                                        _ => "bg-secondary",
+                                                    };
+                                                    string statusText = bookmark.Status.ToString().Replace("PlanToRead", "Plan to Read").Replace("OnHold", "On Hold");
+                                                }
+                                                <span class="badge @statusClass" style="font-size: 0.75rem;">@statusText</span>
+                                            </td>
+                                            <td class="text-end align-middle text-white small">
+                                                @bookmark.UpdatedAt.ToString("MMM dd, yyyy")
+                                            </td>
+                                        </tr>
+                                    }
+                                </tbody>
+                            </table>
+                        </div>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .card {
+        transition: transform 0.2s ease;
+    }
+    .table-hover tbody tr:hover {
+        background-color: rgba(255, 255, 255, 0.03) !important;
+    }
+    .badge {
+        padding: 6px 10px;
+        font-weight: 600;
+    }
+</style>
+
+<script>
+    function copyCustomCss(button) {
+        const css = button.getAttribute('data-css');
+        navigator.clipboard.writeText(css).then(() => {
+            const originalHtml = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-check me-1"></i>Copied!';
+            button.classList.remove('btn-outline-primary');
+            button.classList.add('btn-success');
+            
+            setTimeout(() => {
+                button.innerHTML = originalHtml;
+                button.classList.remove('btn-success');
+                button.classList.add('btn-outline-primary');
+            }, 2000);
+        });
+    }
+</script>

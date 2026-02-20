@@ -1,0 +1,266 @@
+@using MangaReader.Models
+@inject MangaReader.Data.ApplicationDbContext _context
+@{
+    User currentUser = null;
+    if (User.Identity?.IsAuthenticated ?? false)
+    {
+        string userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (int.TryParse(userIdStr, out var userId))
+        {
+            try
+            {
+                currentUser = _context.Users.FirstOrDefault(u => u.Id == userId);
+            }
+            catch { }
+        }
+    }
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - DFlowScans</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/theme.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <style>
+        .hover-text-danger:hover {
+            color: #ef4444 !important;
+        }
+        .notification-item.unread {
+            background: rgba(99, 102, 241, 0.03);
+        }
+
+        @if (currentUser != null)
+        {
+            <text>
+            :root {
+                @if (!string.IsNullOrEmpty(currentUser.CustomPrimaryColor))
+                {
+                    <text>
+                    --primary-color: @currentUser.CustomPrimaryColor !important;
+                    --primary-light: @currentUser.CustomPrimaryColor !important;
+                    --primary-dark: @currentUser.CustomPrimaryColor !important;
+                    </text>
+                }
+                @if (!string.IsNullOrEmpty(currentUser.CustomAccentColor))
+                {
+                    <text>
+                    --accent: @currentUser.CustomAccentColor !important;
+                    --accent-color: @currentUser.CustomAccentColor !important;
+                    </text>
+                }
+                @if (!string.IsNullOrEmpty(currentUser.CustomBackgroundColor))
+                {
+                    <text>
+                    --bg-dark: @currentUser.CustomBackgroundColor !important;
+                    --bg-darker: @currentUser.CustomBackgroundColor !important;
+                    --bg-primary: @currentUser.CustomBackgroundColor !important;
+                    </text>
+                }
+                @if (!string.IsNullOrEmpty(currentUser.CustomNavbarColor))
+                 {
+                     <text>
+                     --bg-secondary: @currentUser.CustomNavbarColor !important;
+                     --bg-tertiary: @currentUser.CustomNavbarColor !important;
+                     </text>
+                 }
+                 @if (!string.IsNullOrEmpty(currentUser.CustomTextColor))
+                 {
+                     <text>
+                     --text-primary: @currentUser.CustomTextColor !important;
+                     --text-secondary: @currentUser.CustomTextColor !important;
+                     --text-muted: @currentUser.CustomTextColor !important;
+                     </text>
+                 }
+             }
+
+            @if (!string.IsNullOrEmpty(currentUser.CustomNavbarColor))
+            {
+                <text>
+                .navbar {
+                    background: @currentUser.CustomNavbarColor !important;
+                }
+                </text>
+            }
+            </text>
+
+            @if (!string.IsNullOrEmpty(currentUser.CustomBackgroundUrl))
+            {
+                <text>
+                body {
+                    background-image: url('@currentUser.CustomBackgroundUrl') !important;
+                    background-attachment: fixed !important;
+                    background-size: cover !important;
+                    background-position: center !important;
+                }
+                body::before {
+                    content: none !important;
+                }
+                </text>
+            }
+
+            @if (currentUser.SiteOpacity.HasValue && currentUser.SiteOpacity.Value < 1.0)
+            {
+                <text>
+                .navbar, .card, .dropdown-menu, footer, .bg-secondary, .bg-secondary-custom, .admin-sidebar, .admin-topbar {
+                    opacity: @currentUser.SiteOpacity.Value !important;
+                }
+                </text>
+            }
+
+            @if (!string.IsNullOrEmpty(currentUser.CustomCss))
+            {
+                @Html.Raw(currentUser.CustomCss)
+            }
+        }
+    </style>
+</head>
+<body>
+    <header>
+        <nav class="navbar navbar-expand-lg navbar-dark sticky-top">
+            <div class="container-fluid">
+                <a class="navbar-brand fw-bold" asp-area="" asp-controller="Home" asp-action="Index">
+                    <i class="fas fa-book-open"></i> DFlowScans
+                </a>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
+                <div class="collapse navbar-collapse" id="navbarNav">
+                    <ul class="navbar-nav ms-auto">
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Index">Home</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Series" asp-action="Index">Series</a>
+                        </li>
+                        <li class="nav-item">
+                            <a class="nav-link" asp-area="" asp-controller="Home" asp-action="Changelog">Changelog</a>
+                        </li>
+                        @if (User.Identity?.IsAuthenticated ?? false)
+                        {
+                            if (User.FindFirst("IsAdmin")?.Value == "True" || User.FindFirst("IsSubAdmin")?.Value == "True")
+                            {
+                                <li class="nav-item">
+                                    <a class="nav-link admin-nav-item" asp-area="" asp-controller="Admin" asp-action="Index">
+                                        <i class="fas fa-cog me-1"></i>Admin
+                                    </a>
+                                </li>
+                            }
+                            <li class="nav-item dropdown" id="notificationDropdownContainer">
+                                <a class="nav-link position-relative d-flex align-items-center justify-content-center" href="#" id="notificationDropdown" role="button" data-bs-toggle="dropdown" aria-expanded="false" style="padding: 0.5rem; width: 40px; height: 40px;">
+                                    <i class="fas fa-bell" style="font-size: 1.2rem;"></i>
+                                    <span id="notificationBadge" class="position-absolute badge rounded-pill bg-danger d-none" style="font-size: 0.55rem; padding: 0.25em 0.45em; top: 2px; right: 2px;">
+                                        0
+                                    </span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end p-0 shadow-lg border-0" aria-labelledby="notificationDropdown" style="width: 350px; background: var(--bg-secondary); max-height: 500px; overflow-y: auto; border: 2px solid rgba(99, 102, 241, 0.5) !important; box-shadow: 0 0 25px rgba(99, 102, 241, 0.3), 0 10px 25px -5px rgba(0, 0, 0, 0.5) !important;">
+                                    <li class="p-3 border-bottom d-flex justify-content-between align-items-center" style="border-color: var(--border-color) !important;">
+                                        <h6 class="mb-0 text-white fw-bold">Notifications</h6>
+                                        <button class="btn btn-sm btn-link text-decoration-none p-0" id="markAllReadBtn" style="color: var(--primary-light); font-size: 0.8rem; font-weight: 500;">Mark all as read</button>
+                                    </li>
+                                    <li class="p-0 border-bottom" style="border-color: var(--border-color) !important;">
+                                        <div class="d-flex w-100">
+                                            <button class="btn btn-sm flex-grow-1 text-white rounded-0 py-2 notif-tab active-notif-tab" id="tabSeries" onclick="switchNotifTab('series', event)" style="font-size: 0.8rem; border: none; background: transparent; transition: all 0.3s ease; border-bottom: 2px solid var(--primary-color); outline: none !important; box-shadow: none !important;">Series</button>
+                                            <button class="btn btn-sm flex-grow-1 text-white rounded-0 py-2 notif-tab" id="tabCommunity" onclick="switchNotifTab('community', event)" style="font-size: 0.8rem; border: none; background: transparent; transition: all 0.3s ease; border-bottom: 2px solid transparent; outline: none !important; box-shadow: none !important;">Community</button>
+                                            <button class="btn btn-sm flex-grow-1 text-white rounded-0 py-2 notif-tab" id="tabSystem" onclick="switchNotifTab('system', event)" style="font-size: 0.8rem; border: none; background: transparent; transition: all 0.3s ease; border-bottom: 2px solid transparent; outline: none !important; box-shadow: none !important;">System</button>
+                                        </div>
+                                    </li>
+                                    <div id="notificationList">
+                                        <li class="p-4 text-center text-white">No notifications yet.</li>
+                                    </div>
+                                </ul>
+                            </li>
+                            <li class="nav-item dropdown">
+                                <a class="nav-link dropdown-toggle d-flex align-items-center gap-2" href="#" id="userDropdown" role="button" data-bs-toggle="dropdown">
+                                    <i class="fas fa-user me-1"></i>
+                                    <span>@User.Identity.Name</span>
+                                    <span id="navUserLevel" class="badge rounded-pill bg-primary" style="font-size: 0.7rem; display: none;">Lvl 1</span>
+                                </a>
+                                <ul class="dropdown-menu dropdown-menu-end" style="background: var(--bg-secondary); border-color: var(--border-color);">
+                                    <li>
+                                        <a class="dropdown-item" style="color: var(--text-primary);" asp-area="" asp-controller="Auth" asp-action="Profile">
+                                            <i class="fas fa-id-card me-2"></i>My Profile
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" style="color: var(--text-primary);" asp-area="" asp-controller="Series" asp-action="Bookmarks">
+                                            <i class="fas fa-bookmark me-2"></i>My Bookmarks
+                                        </a>
+                                    </li>
+                                    <li>
+                                        <a class="dropdown-item" style="color: var(--text-primary);" asp-area="" asp-controller="Auth" asp-action="ChangePassword">
+                                            <i class="fas fa-key me-2"></i>Change Password
+                                        </a>
+                                    </li>
+                                    <li><hr class="dropdown-divider" style="border-color: var(--border-color);"></li>
+                                    <li>
+                                        <form asp-area="" asp-controller="Auth" asp-action="Logout" method="post" style="display: inline;">
+                                            <button type="submit" class="dropdown-item" style="color: var(--text-primary); border: none; background: none; cursor: pointer; padding: 0.5rem 1rem; width: 100%; text-align: left;">
+                                                <i class="fas fa-sign-out-alt me-2"></i>Logout
+                                            </button>
+                                        </form>
+                                    </li>
+                                </ul>
+                            </li>
+                        }
+                        else
+                        {
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Auth" asp-action="Login">
+                                    <i class="fas fa-sign-in-alt me-1"></i>Login
+                                </a>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-area="" asp-controller="Auth" asp-action="Register">
+                                    <i class="fas fa-user-plus me-1"></i>Register
+                                </a>
+                            </li>
+                        }
+                    </ul>
+                </div>
+            </div>
+        </nav>
+    </header>
+
+    <main role="main" class="main-content">
+        @RenderBody()
+    </main>
+
+    <footer class="footer mt-5">
+        <div class="container-fluid">
+            <div class="row">
+                <div class="col-md-4 mb-4">
+                    <h6 class="mb-3">About DFlowScans</h6>
+                    <p class="text-white">A small manga focused scanlation group.</p>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h6 class="mb-3">Quick Links</h6>
+                    <ul class="list-unstyled">
+                        <li><a asp-controller="Home" asp-action="Index">Home</a></li>
+                        <li><a asp-controller="Series" asp-action="Index">Series</a></li>
+                        <li><a asp-controller="Home" asp-action="Changelog">Changelog</a></li>
+                        <li><a href="https://discord.gg/tyRD6Nn6Fr" target="_blank">Contact</a></li>
+                    </ul>
+                </div>
+                <div class="col-md-4 mb-4">
+                    <h6 class="mb-3">Follow Us</h6>
+                    <div class="social-links">
+                        <a href="https://discord.gg/tyRD6Nn6Fr" target="_blank" title="Join our Discord"><i class="fab fa-discord"></i></a>
+                    </div>
+                </div>
+            </div>
+            <hr class="border-secondary">
+            <div class="text-center text-muted">
+                <p class="text-white">&copy; @DateTime.Now.Year DFlowScans. All rights reserved.</p>
+            </div>
+        </div>
+    </footer>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="~/js/site.js" asp-append-version="true"></script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

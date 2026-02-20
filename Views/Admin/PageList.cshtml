@@ -1,0 +1,153 @@
+@model IEnumerable<ChapterPage>
+@{
+    ViewData["Title"] = "Manage Pages";
+    var chapter = ViewBag.Chapter;
+    var chapterId = ViewBag.ChapterId;
+}
+
+<div class="admin-card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <div>
+            <h4 class="text-white mb-0">
+                <i class="fas fa-images me-2 text-primary"></i>Pages
+                <span class="text-white-50 small mx-2">/</span>
+                <span class="fs-6 fw-normal text-white-50">@chapter.Manga.Title</span>
+                <span class="text-white-50 small mx-2">/</span>
+                <span class="fs-6 fw-normal text-white-50">Chapter @chapter.ChapterNumber.ToString("G29")</span>
+            </h4>
+        </div>
+        <div class="d-flex gap-2">
+            <a asp-action="BulkCreatePages" asp-route-chapterId="@chapterId" class="btn btn-sm btn-primary">
+                <i class="fas fa-upload me-1"></i> Bulk Upload
+            </a>
+            <a asp-action="CreatePage" asp-route-chapterId="@chapterId" class="btn btn-sm btn-success">
+                <i class="fas fa-plus me-1"></i> Add Page
+            </a>
+            <a asp-action="ChapterList" asp-route-mangaId="@chapter.MangaId" class="btn btn-sm btn-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Back
+            </a>
+        </div>
+    </div>
+
+    <div class="card-body">
+        @if (Model.Any())
+        {
+            <div class="row g-4">
+                @foreach (var p in Model.OrderBy(x => x.PageNumber))
+                {
+                    <div class="col-6 col-md-4 col-lg-3 col-xl-2">
+                        <div class="page-item-card">
+                            <div class="page-preview">
+                                <img src="@p.ImageUrl" alt="Page @p.PageNumber" loading="lazy">
+                                <div class="page-badge">@p.PageNumber</div>
+                                <div class="page-overlay">
+                                    <div class="d-flex flex-column gap-2 p-3">
+                                        <a asp-action="EditPage" asp-route-id="@p.Id" class="btn btn-sm btn-light">
+                                            <i class="fas fa-edit me-1"></i> Edit
+                                        </a>
+                                        <form asp-action="DeletePage" asp-route-id="@p.Id" method="post" onsubmit="return confirm('Are you sure you want to delete this page?');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-danger w-100">
+                                                <i class="fas fa-trash me-1"></i> Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="page-info p-2 text-center">
+                                <div class="text-white-50 smaller uppercase fw-bold">@p.Width x @p.Height</div>
+                            </div>
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <div class="text-center py-5">
+                <div class="mb-3">
+                    <i class="fas fa-file-image fa-4x text-white-50 opacity-25"></i>
+                </div>
+                <h5 class="text-white">No pages found</h5>
+                <p class="text-white-50">This chapter doesn't have any pages yet.</p>
+                <div class="mt-4">
+                    <a asp-action="BulkCreatePages" asp-route-chapterId="@chapterId" class="btn btn-primary">
+                        <i class="fas fa-upload me-2"></i>Upload Pages
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+<style>
+    .admin-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: 2rem;
+    }
+    .card-header {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        background: rgba(0,0,0,0.2);
+    }
+    .card-body {
+        padding: 1.5rem;
+    }
+    .page-item-card {
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        overflow: hidden;
+        transition: transform 0.2s, border-color 0.2s;
+    }
+    .page-item-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--primary-color);
+    }
+    .page-preview {
+        aspect-ratio: 2/3;
+        position: relative;
+        overflow: hidden;
+        background: #000;
+    }
+    .page-preview img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+    }
+    .page-badge {
+        position: absolute;
+        top: 0.5rem;
+        left: 0.5rem;
+        background: var(--primary-color);
+        color: white;
+        padding: 0.2rem 0.6rem;
+        border-radius: 4px;
+        font-size: 0.75rem;
+        font-weight: bold;
+        box-shadow: 0 2px 4px rgba(0,0,0,0.5);
+    }
+    .page-overlay {
+        position: absolute;
+        inset: 0;
+        background: rgba(0,0,0,0.7);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        opacity: 0;
+        transition: opacity 0.2s;
+    }
+    .page-preview:hover .page-overlay {
+        opacity: 1;
+    }
+    .smaller {
+        font-size: 0.7rem;
+    }
+    .uppercase {
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+</style>

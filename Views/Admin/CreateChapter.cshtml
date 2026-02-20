@@ -1,0 +1,224 @@
+@model Chapter
+@{
+    ViewData["Title"] = (Model != null && Model.Id > 0) ? "Edit Chapter" : "Create Chapter";
+    var manga = ViewBag.Manga as Manga;
+}
+
+<div class="admin-card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4 class="text-white mb-0">
+            <i class="fas @(Model?.Id > 0 ? "fa-edit" : "fa-plus-circle") me-2"></i>@ViewData["Title"]
+            <span class="text-white-50 mx-2">/</span> <span class="small">@manga.Title</span>
+        </h4>
+        <a asp-action="ChapterList" asp-route-mangaId="@manga.Id" class="btn btn-sm btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Back to Chapters
+        </a>
+    </div>
+
+    <div class="card-body">
+        <div class="row">
+            <div class="col-lg-8">
+                <form method="post" enctype="multipart/form-data">
+                    @Html.AntiForgeryToken()
+                    @if (Model != null && Model.Id > 0)
+                    {
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="MangaId" />
+                        <input type="hidden" asp-for="CreatedAt" />
+                        <input type="hidden" asp-for="ViewCount" />
+                    }
+                    else
+                    {
+                        <input type="hidden" asp-for="MangaId" value="@manga.Id" />
+                    }
+
+                    <div class="mb-4">
+                        <label asp-for="ChapterNumber" class="form-label text-white small uppercase fw-bold">Chapter Number <span class="text-danger">*</span></label>
+                        <input asp-for="ChapterNumber" type="number" step="any" class="form-control admin-input" placeholder="e.g., 1, 1.5, 4.2" required />
+                        <small class="text-white">Supports decimals: 1, 1.1, 1.2, 4.5, etc.</small>
+                        <span asp-validation-for="ChapterNumber" class="text-danger small d-block"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Title" class="form-label text-white small uppercase fw-bold">Chapter Title</label>
+                        <input asp-for="Title" class="form-control admin-input" placeholder="Enter chapter title (optional)" />
+                        <span asp-validation-for="Title" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Description" class="form-label text-white small uppercase fw-bold">Description</label>
+                        <textarea asp-for="Description" class="form-control admin-input" rows="3" placeholder="Chapter description (optional)"></textarea>
+                        <span asp-validation-for="Description" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="CoverImageUrl" class="form-label text-white small uppercase fw-bold">Chapter Cover URL (Optional)</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-dark border-secondary text-white"><i class="fas fa-image"></i></span>
+                            <input asp-for="CoverImageUrl" class="form-control admin-input" placeholder="https://..." />
+                        </div>
+                        <span asp-validation-for="CoverImageUrl" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="ReleasedDate" class="form-label text-white small uppercase fw-bold">Release Date</label>
+                        <input asp-for="ReleasedDate" type="datetime-local" class="form-control admin-input" />
+                        <span asp-validation-for="ReleasedDate" class="text-danger small"></span>
+                    </div>
+
+                    @if (!(Model?.Id > 0))
+                    {
+                        <div class="mt-5 p-4 rounded bg-dark bg-opacity-50 border border-secondary border-dashed">
+                            <h5 class="text-white mb-4"><i class="fas fa-images text-primary me-2"></i>Add Pages</h5>
+                            
+                            <div class="mb-4">
+                                <label class="form-label text-white-50 small uppercase fw-bold">Option 1: Upload Files</label>
+                                <input type="file" name="pages" class="form-control admin-input" multiple accept="image/*" />
+                                <small class="text-white-50 mt-1 d-block">You can select multiple images from your computer.</small>
+                            </div>
+
+                            <div class="mb-0">
+                                <label class="form-label d-flex justify-content-between text-white-50 small uppercase fw-bold">
+                                    <span>Option 2: Page URLs (one per line)</span>
+                                    <button type="button" class="btn btn-sm btn-primary py-0 px-2" onclick="autoSortUrls()">
+                                        <i class="fas fa-sort-alpha-down me-1"></i>Auto-Sort
+                                    </button>
+                                </label>
+                                <textarea name="pageUrls" id="pageUrlsTextarea" class="form-control admin-input font-monospace mt-2" rows="10" placeholder="https://image-host.com/p1.jpg&#10;https://image-host.com/p2.jpg" style="font-size: 0.85rem;">@ViewBag.PageUrls</textarea>
+                                <small class="text-white-50 mt-1 d-block">Paste image URLs here. Our system will download and process them.</small>
+                            </div>
+                        </div>
+                    }
+
+                    <div class="mt-4 pt-3 border-top border-secondary">
+                        <button type="submit" class="btn btn-primary px-4 py-2 fw-bold">
+                            <i class="fas fa-save me-2"></i>@(Model?.Id > 0 ? "Update Chapter" : "Create Chapter")
+                        </button>
+                        <a asp-action="ChapterList" asp-route-mangaId="@manga.Id" class="btn btn-outline-secondary px-4 py-2 ms-2">Cancel</a>
+                    </div>
+                </form>
+            </div>
+
+            <div class="col-lg-4 mt-4 mt-lg-0">
+                <div class="card bg-dark border-secondary mb-4" style="background: var(--bg-tertiary) !important; border-color: var(--border-color) !important;">
+                    <div class="card-body">
+                        <h5 class="card-title text-white mb-3"><i class="fas fa-tasks text-info me-2"></i>Management</h5>
+                        <p class="small text-white-50 mb-4">You are managing chapters for <strong>@manga.Title</strong>.</p>
+                        
+                        @if (Model?.Id > 0)
+                        {
+                            <a asp-action="PageList" asp-route-chapterId="@Model.Id" class="btn btn-info w-100 fw-bold">
+                                <i class="fas fa-images me-2"></i>Manage Pages (@(Model.Pages?.Count ?? 0))
+                            </a>
+                        }
+                        else
+                        {
+                            <div class="alert alert-info border-info bg-dark bg-opacity-50 small mb-0">
+                                <i class="fas fa-info-circle me-2"></i> After creating the chapter, you can add, remove, or reorder pages in the Page Management section.
+                            </div>
+                        }
+                    </div>
+                </div>
+
+                <div class="card bg-dark border-secondary" style="background: var(--bg-tertiary) !important; border-color: var(--border-color) !important;">
+                    <div class="card-body">
+                        <h5 class="card-title text-white mb-3"><i class="fas fa-cloud-upload-alt text-success me-2"></i>Upload Tips</h5>
+                        <ul class="list-unstyled text-white-50 small mb-0">
+                            <li class="mb-3">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <strong>Ordering:</strong> Use numbered filenames (01.jpg, 02.jpg) for correct sequence.
+                            </li>
+                            <li class="mb-3">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <strong>Formats:</strong> JPG, PNG, WEBP are supported.
+                            </li>
+                            <li class="mb-3">
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <strong>URLs:</strong> Ensure they are direct image links.
+                            </li>
+                            <li>
+                                <i class="fas fa-check-circle text-success me-2"></i>
+                                <strong>Processing:</strong> Large chapters (50+ pages) may take a moment.
+                            </li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    function autoSortUrls() {
+        const textarea = document.getElementById('pageUrlsTextarea');
+        if (!textarea) return;
+        
+        const content = textarea.value;
+        if (!content.trim()) return;
+
+        const urlRegex = /(https?:\/\/[^\s\n\r\t]+)/g;
+        let urls = content.match(urlRegex) || [];
+        
+        urls = urls.map(url => url.replace(/[;,]$/, '').trim()).filter(url => url.length > 0);
+        
+        if (urls.length === 0) return;
+
+        const sortByFilename = (a, b) => {
+            const getFilename = (url) => {
+                const parts = url.split('/');
+                return parts[parts.length - 1] || url;
+            };
+            return getFilename(a).localeCompare(getFilename(b), undefined, { numeric: true, sensitivity: 'base' });
+        };
+
+        urls.sort(sortByFilename);
+        textarea.value = urls.join('\n');
+        
+        const btn = event.currentTarget;
+        const originalHtml = btn.innerHTML;
+        btn.innerHTML = '<i class="fas fa-check me-1"></i>Sorted!';
+        btn.classList.replace('btn-primary', 'btn-success');
+        
+        setTimeout(() => {
+            btn.innerHTML = originalHtml;
+            btn.classList.replace('btn-success', 'btn-primary');
+        }, 2000);
+    }
+</script>
+
+<style>
+    .admin-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        margin-bottom: 2rem;
+    }
+    .card-header {
+        padding: 1.25rem;
+        border-bottom: 1px solid var(--border-color);
+        background: rgba(0,0,0,0.1);
+    }
+    .card-body {
+        padding: 1.25rem;
+    }
+    .admin-input {
+        background: var(--bg-tertiary) !important;
+        border-color: var(--border-color) !important;
+        color: var(--text-primary) !important;
+    }
+    .admin-input:focus {
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 0 0 0.25rem rgba(var(--primary-rgb), 0.25) !important;
+    }
+    .border-dashed {
+        border-style: dashed !important;
+    }
+    .uppercase {
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+</style>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

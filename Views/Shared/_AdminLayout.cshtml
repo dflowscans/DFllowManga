@@ -1,0 +1,203 @@
+@using MangaReader.Models
+@using MangaReader.Data
+@inject ApplicationDbContext _context
+@{
+    MangaReader.Models.User? currentUser = null;
+    if (User.Identity?.IsAuthenticated ?? false)
+    {
+        string? userIdStr = User.FindFirst(System.Security.Claims.ClaimTypes.NameIdentifier)?.Value;
+        if (int.TryParse(userIdStr, out var userId))
+        {
+            try
+            {
+                currentUser = _context.Users.FirstOrDefault(u => u.Id == userId);
+            }
+            catch { }
+        }
+    }
+}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] - Admin Panel</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+    <style>
+        @if (currentUser != null)
+        {
+            <text>
+            :root {
+                @if (!string.IsNullOrEmpty(currentUser.CustomPrimaryColor))
+                {
+                    <text>
+                    --primary-color: @currentUser.CustomPrimaryColor !important;
+                    --primary-light: @currentUser.CustomPrimaryColor !important;
+                    --primary-dark: @currentUser.CustomPrimaryColor !important;
+                    </text>
+                }
+                @if (!string.IsNullOrEmpty(currentUser.CustomAccentColor))
+                {
+                    <text>
+                    --accent: @currentUser.CustomAccentColor !important;
+                    </text>
+                }
+            }
+
+            @if (!string.IsNullOrEmpty(currentUser.CustomBackgroundUrl))
+            {
+                <text>
+                body {
+                    background-image: url('@currentUser.CustomBackgroundUrl') !important;
+                    background-attachment: fixed !important;
+                    background-size: cover !important;
+                    background-position: center !important;
+                }
+                .admin-dashboard-wrapper::before {
+                    content: none !important;
+                }
+                </text>
+            }
+
+            @if (currentUser.SiteOpacity.HasValue && currentUser.SiteOpacity.Value < 1.0)
+            {
+                <text>
+                .admin-sidebar, .admin-header, .admin-card, .dropdown-menu, .modal-content {
+                    opacity: @currentUser.SiteOpacity.Value !important;
+                }
+                </text>
+            }
+
+            @if (!string.IsNullOrEmpty(currentUser.CustomCss))
+            {
+                @Html.Raw(currentUser.CustomCss)
+            }
+            </text>
+        }
+    </style>
+    @await RenderSectionAsync("Styles", required: false)
+</head>
+<body class="admin-body">
+    <div class="admin-dashboard-wrapper">
+        
+        <aside class="admin-sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-book-reader"></i>
+                <span>Admin</span>
+            </div>
+
+            <nav class="sidebar-nav">
+                <div class="nav-group-title">Main</div>
+                <a asp-controller="Admin" asp-action="Index" class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")">
+                    <i class="fas fa-th-large"></i> Dashboard
+                </a>
+
+                <div class="nav-group-title">Manga Management</div>
+                <a asp-controller="Admin" asp-action="ManageContent" class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "ManageContent" ? "active" : "")">
+                    <i class="fas fa-layer-group"></i> Unified Manager
+                </a>
+                <a asp-controller="Admin" asp-action="MangaList" class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "MangaList" ? "active" : "")">
+                    <i class="fas fa-book"></i> Manga Directory
+                </a>
+                <a asp-controller="Admin" asp-action="BloggerImport" class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "BloggerImport" ? "active" : "")">
+                    <i class="fas fa-file-import"></i> Blogger Import
+                </a>
+                <a asp-controller="Admin" asp-action="BloggerSeriesImport" class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "BloggerSeriesImport" ? "active" : "")">
+                    <i class="fas fa-plus-square"></i> Import Series
+                </a>
+
+                <div class="nav-group-title">User Engagement</div>
+                <a asp-controller="Admin" asp-action="ManageUsers" class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "ManageUsers" ? "active" : "")">
+                    <i class="fas fa-users"></i> Users
+                </a>
+                <a asp-controller="Admin" asp-action="ManageComments" class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "ManageComments" ? "active" : "")">
+                    <i class="fas fa-comments"></i> Comments
+                </a>
+                <a asp-controller="Admin" asp-action="ChangelogList" class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "ChangelogList" ? "active" : "")">
+                    <i class="fas fa-history"></i> Changelog
+                </a>
+
+                <div class="nav-group-title">Customization</div>
+                <a asp-controller="Admin" asp-action="ManageEmojis" class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "ManageEmojis" ? "active" : "")">
+                    <i class="fas fa-smile"></i> Emojis
+                </a>
+                <a asp-controller="Admin" asp-action="ManageDecorations" class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "ManageDecorations" ? "active" : "")">
+                    <i class="fas fa-paint-brush"></i> PFP Decorations
+                </a>
+                <a asp-controller="Admin" asp-action="ManageTitles" class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "ManageTitles" ? "active" : "")">
+                    <i class="fas fa-award"></i> User Titles
+                </a>
+
+                <div class="nav-group-title">System</div>
+                <a asp-controller="Admin" asp-action="SiteSettings" class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "SiteSettings" ? "active" : "")">
+                    <i class="fas fa-cog"></i> Site Settings
+                </a>
+                <a asp-controller="Admin" asp-action="ManageDatabase" class="nav-link @(ViewContext.RouteData.Values["action"]?.ToString() == "ManageDatabase" ? "active" : "")">
+                    <i class="fas fa-database"></i> Database
+                </a>
+            </nav>
+
+            <div class="sidebar-footer mt-auto pt-3 border-top border-white-5 opacity-50">
+                <a href="/" class="nav-link">
+                    <i class="fas fa-external-link-alt"></i> View Site
+                </a>
+            </div>
+        </aside>
+
+        
+        <main class="admin-main">
+            <header class="admin-header">
+                <div class="header-left">
+                    <h5 class="mb-0 fw-bold">@ViewData["Title"]</h5>
+                </div>
+
+                <div class="header-right">
+                    <div class="admin-profile">
+                        @{
+                            var pfpUrl = User.FindFirst("ProfilePicture")?.Value ?? "https://wallpapers-clan.com/wp-content/uploads/2022/08/default-pfp-24.jpg";
+                        }
+                        <img src="@pfpUrl" class="admin-avatar" alt="Avatar" onerror="this.src='https://wallpapers-clan.com/wp-content/uploads/2022/08/default-pfp-24.jpg'">
+                        <span class="small fw-medium d-none d-md-inline">@User.Identity?.Name</span>
+                        <a asp-controller="Auth" asp-action="Logout" class="text-danger ms-2" title="Logout">
+                            <i class="fas fa-sign-out-alt"></i>
+                        </a>
+                    </div>
+                </div>
+            </header>
+
+            <div class="admin-content">
+                @if (TempData["Success"] != null)
+                {
+                    <div class="alert alert-success alert-dismissible fade show" role="alert">
+                        @TempData["Success"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+                @if (TempData["Error"] != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+                        @TempData["Error"]
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
+                @RenderBody()
+            </div>
+        </main>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#sidebar-toggle').on('click', function() {
+                $('.admin-sidebar').toggleClass('active');
+            });
+        });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

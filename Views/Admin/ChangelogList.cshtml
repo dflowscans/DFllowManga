@@ -1,0 +1,104 @@
+@model IEnumerable<ChangelogEntry>
+@{
+    ViewData["Title"] = "Site Changelogs";
+}
+
+<div class="admin-card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4 class="text-white mb-0"><i class="fas fa-history me-2"></i>Changelog Management</h4>
+        <a asp-action="CreateChangelog" class="btn btn-sm btn-success">
+            <i class="fas fa-plus me-1"></i> New Entry
+        </a>
+    </div>
+
+    <div class="card-body">
+        <div class="table-responsive">
+            <table class="table admin-table align-middle">
+                <thead>
+                    <tr class="text-white-50 small uppercase">
+                        <th>Title</th>
+                        <th>Release Date</th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Any())
+                    {
+                        @foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="fw-bold text-white">@item.Title</td>
+                                <td class="text-white-50 small">@item.CreatedAt.ToString("MMM dd, yyyy")</td>
+                                <td>
+                                    <div class="d-flex justify-content-end gap-2">
+                                        <a asp-action="EditChangelog" asp-route-id="@item.Id" class="btn btn-sm btn-outline-primary" title="Edit Entry">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <form asp-action="DeleteChangelog" asp-route-id="@item.Id" method="post" class="d-inline" onsubmit="return confirm('Are you sure you want to delete this entry?');">
+                                            @Html.AntiForgeryToken()
+                                            <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete Entry">
+                                                <i class="fas fa-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="3" class="text-center py-5 text-white-50">
+                                <i class="fas fa-history mb-3 d-block fs-2"></i>
+                                No changelog entries found.
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .admin-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+    .card-header {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        background: rgba(0,0,0,0.2);
+    }
+    .card-body {
+        padding: 1.5rem;
+    }
+    .admin-table {
+        color: var(--text-primary);
+        margin-bottom: 0;
+    }
+    .admin-table thead th {
+        background: rgba(0,0,0,0.1);
+        border-bottom: 1px solid var(--border-color);
+        padding: 1rem;
+        font-weight: 600;
+    }
+    .admin-table tbody td {
+        padding: 1rem;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .admin-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+    .admin-table tbody tr:hover {
+        background: rgba(255,255,255,0.02);
+    }
+    .uppercase {
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        font-size: 0.75rem;
+    }
+</style>

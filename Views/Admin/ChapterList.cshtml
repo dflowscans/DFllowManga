@@ -1,0 +1,164 @@
+@model IEnumerable<Chapter>
+@{
+    ViewData["Title"] = "Manage Chapters";
+    var manga = ViewBag.Manga;
+    var mangaId = ViewBag.MangaId;
+}
+
+<div class="admin-card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4 class="text-white mb-0">
+            <a href="@Url.Action("MangaList", "Admin")" style="color: var(--primary-color); text-decoration: none;"><i class="fas fa-book me-2"></i>Manga</a>
+            <span class="text-white mx-2 opacity-50">/</span> @manga.Title <span class="text-white small opacity-75">- Chapters</span>
+        </h4>
+        <div class="d-flex gap-2">
+            <a asp-action="CreateChapter" asp-route-mangaId="@mangaId" class="btn btn-sm btn-success">
+                <i class="fas fa-plus me-1"></i> Add Chapter
+            </a>
+            <a asp-action="MangaList" class="btn btn-sm btn-secondary">
+                <i class="fas fa-arrow-left me-1"></i> Back
+            </a>
+        </div>
+    </div>
+
+    <div class="card-body">
+        
+        <div class="table-responsive">
+            <table class="table admin-table align-middle">
+                <thead>
+                    <tr class="text-white small uppercase">
+                        <th>
+                            <a asp-action="ChapterList" asp-route-mangaId="@mangaId" asp-route-sort="@(ViewBag.CurrentSort == "number_desc" ? "number_asc" : "number_desc")" class="text-decoration-none text-white">
+                                Chapter <i class="fas fa-sort@(ViewBag.CurrentSort == "number_asc" ? "-up" : (ViewBag.CurrentSort == "number_desc" ? "-down" : "")) ms-1"></i>
+                            </a>
+                        </th>
+                        <th>
+                            <a asp-action="ChapterList" asp-route-mangaId="@mangaId" asp-route-sort="@(ViewBag.CurrentSort == "title_asc" ? "title_desc" : "title_asc")" class="text-decoration-none text-white">
+                                Title <i class="fas fa-sort@(ViewBag.CurrentSort == "title_asc" ? "-up" : (ViewBag.CurrentSort == "title_desc" ? "-down" : "")) ms-1"></i>
+                            </a>
+                        </th>
+                        <th class="text-center">
+                            <a asp-action="ChapterList" asp-route-mangaId="@mangaId" asp-route-sort="@(ViewBag.CurrentSort == "pages_desc" ? "pages_asc" : "pages_desc")" class="text-decoration-none text-white">
+                                Pages <i class="fas fa-sort@(ViewBag.CurrentSort == "pages_asc" ? "-up" : (ViewBag.CurrentSort == "pages_desc" ? "-down" : "")) ms-1"></i>
+                            </a>
+                        </th>
+                        <th class="text-center">
+                            <a asp-action="ChapterList" asp-route-mangaId="@mangaId" asp-route-sort="@(ViewBag.CurrentSort == "comments_desc" ? "comments_asc" : "comments_desc")" class="text-decoration-none text-white">
+                                Comments <i class="fas fa-sort@(ViewBag.CurrentSort == "comments_asc" ? "-up" : (ViewBag.CurrentSort == "comments_desc" ? "-down" : "")) ms-1"></i>
+                            </a>
+                        </th>
+                        <th class="text-center">
+                            <a asp-action="ChapterList" asp-route-mangaId="@mangaId" asp-route-sort="@(ViewBag.CurrentSort == "date_desc" ? "date_asc" : "date_desc")" class="text-decoration-none text-white">
+                                Release Date <i class="fas fa-sort@(ViewBag.CurrentSort == "date_asc" ? "-up" : (ViewBag.CurrentSort == "date_desc" ? "-down" : "")) ms-1"></i>
+                            </a>
+                        </th>
+                        <th class="text-center">
+                            <a asp-action="ChapterList" asp-route-mangaId="@mangaId" asp-route-sort="@(ViewBag.CurrentSort == "views_desc" ? "views_asc" : "views_desc")" class="text-decoration-none text-white">
+                                Views <i class="fas fa-sort@(ViewBag.CurrentSort == "views_asc" ? "-up" : (ViewBag.CurrentSort == "views_desc" ? "-down" : "")) ms-1"></i>
+                            </a>
+                        </th>
+                        <th class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Any())
+                    {
+                        @foreach (var chapter in Model)
+                        {
+                            <tr>
+                                <td class="fw-bold text-primary">Chapter @chapter.ChapterNumber.ToString("G29")</td>
+                                <td class="text-white text-truncate-1" style="max-width: 300px;">@(string.IsNullOrEmpty(chapter.Title) ? "No Title" : chapter.Title)</td>
+                                <td class="text-center">
+                                    <span class="badge bg-dark border border-secondary text-white rounded-pill px-3">
+                                        @(chapter.Pages?.Count ?? 0)
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <a asp-action="ManageComments" asp-route-chapterId="@chapter.Id" class="badge bg-dark border border-info text-info rounded-pill px-3 text-decoration-none fw-bold">
+                                        <i class="fas fa-comments me-1"></i>@(chapter.Comments?.Count ?? 0)
+                                    </a>
+                                </td>
+                                <td class="text-center text-white small">
+                                    @chapter.ReleasedDate.ToString("MMM dd, yyyy")
+                                </td>
+                                <td class="text-center">
+                                    <span class="text-info"><i class="fas fa-eye me-1"></i>@chapter.ViewCount</span>
+                                </td>
+                                <td>
+                                    <div class="d-flex justify-content-end gap-1">
+                                        <a asp-action="PageList" asp-route-chapterId="@chapter.Id" class="btn btn-sm btn-outline-info" title="Manage pages">
+                                            <i class="fas fa-images"></i>
+                                        </a>
+                                        <a asp-action="EditChapter" asp-route-id="@chapter.Id" class="btn btn-sm btn-outline-primary" title="Edit">
+                                            <i class="fas fa-edit"></i>
+                                        </a>
+                                        <a asp-action="DeleteChapter" asp-route-id="@chapter.Id" class="btn btn-sm btn-outline-danger" title="Delete">
+                                            <i class="fas fa-trash"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center py-5 text-white">
+                                <i class="fas fa-inbox mb-3 d-block fs-2 opacity-50"></i>
+                                No chapters found for this manga.
+                                <div class="mt-3">
+                                    <a asp-action="CreateChapter" asp-route-mangaId="@mangaId" class="btn btn-primary">
+                                        <i class="fas fa-plus me-1"></i> Create First Chapter
+                                    </a>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<style>
+    .admin-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+    .card-header {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        background: rgba(0,0,0,0.2);
+    }
+    .card-body {
+        padding: 1.5rem;
+    }
+    .admin-table {
+        color: var(--text-primary);
+        margin-bottom: 0;
+    }
+    .admin-table thead th {
+        background: rgba(0,0,0,0.1);
+        border-bottom: 1px solid var(--border-color);
+        padding: 1rem;
+        font-weight: 600;
+    }
+    .admin-table tbody td {
+        padding: 1rem;
+        border-bottom: 1px solid rgba(255,255,255,0.05);
+    }
+    .admin-table tbody tr:last-child td {
+        border-bottom: none;
+    }
+    .admin-table tbody tr:hover {
+        background: rgba(255,255,255,0.02);
+    }
+    .uppercase {
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        font-size: 0.75rem;
+    }
+</style>

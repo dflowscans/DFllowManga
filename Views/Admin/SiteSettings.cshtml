@@ -1,0 +1,75 @@
+@model IEnumerable<SiteSetting>
+@{
+    ViewData["Title"] = "Site Settings";
+}
+
+<div class="admin-card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4 class="text-white mb-0"><i class="fas fa-cog me-2 text-primary"></i>Site Settings</h4>
+    </div>
+    <div class="card-body">
+        <div class="alert alert-info bg-dark border-info text-info small">
+            <i class="fas fa-info-circle me-2"></i>
+            These settings control various aspects of the website. Changes are applied immediately.
+        </div>
+
+        <div class="table-responsive">
+            <table class="table admin-table align-middle">
+                <thead>
+                    <tr class="text-white-50 small uppercase">
+                        <th style="width: 250px;">Setting Key</th>
+                        <th>Value</th>
+                        <th style="width: 150px;" class="text-end">Actions</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Any())
+                    {
+                        @foreach (var setting in Model)
+                        {
+                            <tr>
+                                <td class="fw-bold text-white">@setting.Key</td>
+                                <td>
+                                    <form asp-action="UpdateSetting" method="post" id="form-@setting.Key.Replace(" ", "-")">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="key" value="@setting.Key" />
+                                        @if (setting.Value.Length > 100 || setting.Key.Contains("Description") || setting.Key.Contains("Notice"))
+                                        {
+                                            <textarea name="value" class="form-control admin-input" rows="3">@setting.Value</textarea>
+                                        }
+                                        else
+                                        {
+                                            <input type="text" name="value" value="@setting.Value" class="form-control admin-input" />
+                                        }
+                                    </form>
+                                </td>
+                                <td class="text-end">
+                                    <button type="submit" form="form-@setting.Key.Replace(" ", "-")" class="btn btn-sm btn-primary">
+                                        <i class="fas fa-save me-1"></i> Save
+                                    </button>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="3" class="text-center py-5 text-white-50">
+                                <i class="fas fa-cog mb-3 d-block fs-2"></i>
+                                No settings found in the database.
+                                <div class="mt-3">
+                                    <form asp-action="FixDatabase" method="post">
+                                        @Html.AntiForgeryToken()
+                                        <button type="submit" class="btn btn-primary">
+                                            <i class="fas fa-tools me-1"></i> Initialize Settings Table
+                                        </button>
+                                    </form>
+                                </div>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

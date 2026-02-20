@@ -1,0 +1,261 @@
+@model List<PfpDecoration>
+@{
+    ViewData["Title"] = "Manage Decorations";
+}
+
+<div class="admin-card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4 class="text-white mb-0">
+            <i class="fas fa-palette me-2 text-primary"></i>Manage PFP Decorations
+        </h4>
+        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#createModal">
+            <i class="fas fa-plus me-1"></i> Add Decoration
+        </button>
+    </div>
+    
+    <div class="card-body">
+        <div class="alert alert-info border-info bg-dark bg-opacity-50 mb-4">
+            <div class="d-flex">
+                <i class="fas fa-info-circle fs-4 me-3 mt-1"></i>
+                <div>
+                    <h6 class="alert-heading fw-bold mb-1">Decoration Guidelines</h6>
+                    <ul class="mb-0 text-white-50 small">
+                        <li><strong>Dimensions:</strong> 256x256 or 512x512 pixels recommended.</li>
+                        <li><strong>Ratio:</strong> 1:1 (Square) is required for proper alignment.</li>
+                        <li><strong>Format:</strong> Use transparent PNG, GIF, or WebP.</li>
+                        <li><strong>Design:</strong> Create a "frame" with transparency in the center.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            @foreach (var decoration in Model)
+            {
+                <div class="col-6 col-md-4 col-lg-3">
+                    <div class="decoration-item-card h-100">
+                        <div class="card-body text-center d-flex flex-column p-3">
+                            <div class="decoration-preview-container mb-3">
+                                <img src="https://ui-avatars.com/api/?name=User&background=312e81&color=fff&size=128" class="avatar-placeholder" alt="Avatar" />
+                                <img src="@decoration.ImageUrl" class="decoration-overlay" alt="@decoration.Name" onerror="this.src='https://placehold.co/200x200/2a2e35/ef4444?text=Error';" />
+                            </div>
+                            
+                            <h6 class="text-white text-truncate mb-2" title="@decoration.Name">@decoration.Name</h6>
+                            
+                            <div class="d-flex flex-wrap justify-content-center gap-1 mb-3">
+                                <span class="badge bg-primary smaller uppercase">LV @decoration.LevelRequirement</span>
+                                @if (decoration.IsLocked)
+                                {
+                                    <span class="badge bg-danger smaller uppercase"><i class="fas fa-lock me-1"></i>Locked</span>
+                                }
+                                @if (decoration.IsAnimated)
+                                {
+                                    <span class="badge bg-info smaller uppercase"><i class="fas fa-sparkles me-1"></i>Animated</span>
+                                }
+                            </div>
+                            
+                            <div class="d-flex justify-content-center gap-2 mt-auto pt-2 border-top border-secondary border-opacity-25">
+                                <button class="btn btn-sm btn-outline-primary" 
+                                        data-decoration='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(decoration))'
+                                        onclick="editDecoration(this)" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <form asp-action="DeleteDecoration" method="post" onsubmit="return confirm('Delete this decoration?');" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@decoration.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .admin-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+    .card-header {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        background: rgba(0,0,0,0.2);
+    }
+    .card-body {
+        padding: 1.5rem;
+    }
+    .decoration-item-card {
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        transition: transform 0.2s, border-color 0.2s;
+    }
+    .decoration-item-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--primary-color);
+    }
+    .decoration-preview-container {
+        width: 100px;
+        height: 100px;
+        margin: 0 auto;
+        position: relative;
+        background: #000;
+        border-radius: 50%;
+        border: 2px solid var(--border-color);
+    }
+    .avatar-placeholder {
+        width: 80%;
+        height: 80%;
+        border-radius: 50%;
+        position: absolute;
+        top: 10%;
+        left: 10%;
+        z-index: 1;
+        object-fit: cover;
+    }
+    .decoration-overlay {
+        position: absolute;
+        top: -5%;
+        left: -5%;
+        width: 110%;
+        height: 110%;
+        z-index: 2;
+        object-fit: contain;
+    }
+    .admin-input {
+        background: var(--bg-tertiary) !important;
+        border-color: var(--border-color) !important;
+        color: var(--text-primary) !important;
+    }
+    .admin-input:focus {
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.25) !important;
+    }
+    .smaller {
+        font-size: 0.65rem;
+    }
+    .uppercase {
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+</style>
+
+
+<div class="modal fade" id="createModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark border-secondary">
+            <form asp-action="CreateDecoration" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title text-white">Add New Decoration</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label text-white-50 small uppercase fw-bold">Name</label>
+                        <input type="text" name="Name" class="form-control admin-input" placeholder="e.g., Golden Frame" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-white-50 small uppercase fw-bold">Image URL</label>
+                        <input type="text" name="ImageUrl" class="form-control admin-input" placeholder="https://..." required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-white-50 small uppercase fw-bold">Level Requirement</label>
+                        <input type="number" name="LevelRequirement" class="form-control admin-input" value="1" min="1" required />
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="form-check form-switch mb-3">
+                                <input type="checkbox" name="IsAnimated" class="form-check-input" id="isAnimatedCreate" value="true" />
+                                <label class="form-check-label text-white" for="isAnimatedCreate">Is Animated?</label>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-check form-switch mb-3">
+                                <input type="checkbox" name="IsLocked" class="form-check-input" id="isLockedCreate" value="true" />
+                                <label class="form-check-label text-white" for="isLockedCreate">Is Locked?</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Decoration</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark border-secondary">
+            <form asp-action="EditDecoration" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="Id" id="editId" />
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title text-white">Edit Decoration</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label text-white-50 small uppercase fw-bold">Name</label>
+                        <input type="text" name="Name" id="editName" class="form-control admin-input" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-white-50 small uppercase fw-bold">Image URL</label>
+                        <input type="text" name="ImageUrl" id="editImageUrl" class="form-control admin-input" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-white-50 small uppercase fw-bold">Level Requirement</label>
+                        <input type="number" name="LevelRequirement" id="editLevelRequirement" class="form-control admin-input" min="1" required />
+                    </div>
+                    <div class="row">
+                        <div class="col-6">
+                            <div class="form-check form-switch mb-3">
+                                <input type="checkbox" name="IsAnimated" class="form-check-input" id="editIsAnimated" value="true" />
+                                <label class="form-check-label text-white" for="editIsAnimated">Is Animated?</label>
+                            </div>
+                        </div>
+                        <div class="col-6">
+                            <div class="form-check form-switch mb-3">
+                                <input type="checkbox" name="IsLocked" class="form-check-input" id="editIsLocked" value="true" />
+                                <label class="form-check-label text-white" for="editIsLocked">Is Locked?</label>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function editDecoration(btn) {
+            const decoration = JSON.parse(btn.getAttribute('data-decoration'));
+            
+            document.getElementById('editId').value = decoration.Id || decoration.id;
+            document.getElementById('editName').value = decoration.Name || decoration.name;
+            document.getElementById('editImageUrl').value = decoration.ImageUrl || decoration.imageUrl;
+            document.getElementById('editLevelRequirement').value = decoration.LevelRequirement || decoration.levelRequirement;
+            document.getElementById('editIsAnimated').checked = decoration.IsAnimated || decoration.isAnimated || false;
+            document.getElementById('editIsLocked').checked = decoration.IsLocked || decoration.isLocked || false;
+            
+            new bootstrap.Modal(document.getElementById('editModal')).show();
+        }
+    </script>
+}

@@ -1,0 +1,6 @@
+@model ChangelogEntry
+@{
+    ViewData["Title"] = "Edit Changelog";
+}
+
+@await Html.PartialAsync("~/Views/Admin/CreateChangelog.cshtml", Model)

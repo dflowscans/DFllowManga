@@ -1,0 +1,147 @@
+@using MangaReader.Models
+@{
+    ViewData["Title"] = "Import Blogger Posts";
+    var mangas = (ViewBag.Mangas as List<Manga>) ?? new List<Manga>();
+}
+
+<div class="admin-card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <div>
+            <h4 class="text-white mb-0">
+                <i class="fab fa-blogger me-2 text-primary"></i>Blogger Chapter Importer
+            </h4>
+            <p class="text-white-50 small mb-0 mt-1">Extract chapters and images from your Blogger site automatically.</p>
+        </div>
+    </div>
+    
+    <div class="card-body">
+        <form asp-action="BloggerImport" method="post" id="importForm">
+            @Html.AntiForgeryToken()
+            
+            <div class="row g-4">
+                <div class="col-md-8">
+                    <div class="mb-3">
+                        <label for="bloggerUrl" class="form-label text-white-50 small uppercase fw-bold">Blogger URL or Feed URL</label>
+                        <input type="text" class="form-control admin-input" id="bloggerUrl" name="bloggerUrl" 
+                               placeholder="e.g. dflowscans.blogspot.com" value="dflowscans.blogspot.com" required>
+                        <div class="form-text text-white-50 smaller">
+                            You can enter the blog URL (e.g. dflowscans.blogspot.com) or a full feed URL.
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="mangaId" class="form-label text-white-50 small uppercase fw-bold">Target Manga</label>
+                        <select class="form-select admin-input" id="mangaId" name="mangaId" required>
+                            <option value="">-- Select Manga to Import Into --</option>
+                            @foreach (var manga in mangas)
+                            {
+                                <option value="@manga.Id">@manga.Title</option>
+                            }
+                        </select>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="seriesTag" class="form-label text-white-50 small uppercase fw-bold">Series Label (Chapter Identifier)</label>
+                                <input type="text" class="form-control admin-input" id="seriesTag" name="seriesTag" placeholder="e.g. Mutual Love">
+                                <div class="form-text text-white-50 smaller">
+                                    The unique label identifying this series in chapter posts.
+                                </div>
+                            </div>
+                        </div>
+                        <div class="col-md-6">
+                            <div class="mb-3">
+                                <label for="chapterTag" class="form-label text-white-50 small uppercase fw-bold">General Chapter Tag</label>
+                                <input type="text" class="form-control admin-input" id="chapterTag" name="chapterTag" value="chapter" placeholder="e.g. chapter">
+                                <div class="form-text text-white-50 smaller">
+                                    Label used to identify a post as a chapter. Default: "chapter".
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4">
+                        <button type="submit" class="btn btn-primary w-100" id="submitBtn">
+                            <i class="fas fa-download me-2"></i> Start Import
+                        </button>
+                    </div>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="p-4 rounded border border-secondary bg-dark bg-opacity-25">
+                        <h6 class="text-primary fw-bold mb-3"><i class="fas fa-info-circle me-2"></i> How it works</h6>
+                        <ul class="small text-white-50 ps-3 mb-0">
+                            <li class="mb-3">The tool connects to the Blogger JSON feed.</li>
+                            <li class="mb-3"><strong>Filtering:</strong> Imports posts with BOTH the <em>Series Tag</em> and <em>Chapter Tag</em>.</li>
+                            <li class="mb-3">Parses chapter numbers from post titles automatically.</li>
+                            <li class="mb-3">Extracts all <code>&lt;img&gt;</code> tags as chapter pages.</li>
+                            <li class="mb-0"><strong>Note:</strong> Images are linked directly from Blogger/Google servers.</li>
+                        </ul>
+                        
+                        <div class="alert alert-warning mt-4 mb-0 py-3 px-3 border-warning bg-warning bg-opacity-10">
+                            <div class="d-flex">
+                                <i class="fas fa-exclamation-triangle me-3 mt-1 fs-5"></i>
+                                <div class="small">
+                                    <strong>Warning:</strong> Large imports may take a few moments. Do not refresh the page.
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div id="loadingOverlay" class="d-none" style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); z-index: 9999; display: flex; align-items: center; justify-content: center; flex-direction: column;">
+    <div class="spinner-border text-primary mb-3" role="status" style="width: 3rem; height: 3rem;">
+        <span class="visually-hidden">Loading...</span>
+    </div>
+    <h5 class="text-white">Importing chapters...</h5>
+    <p class="text-white-50">This may take a minute depending on the number of posts.</p>
+</div>
+
+@section Scripts {
+    <script>
+        document.getElementById('importForm').addEventListener('submit', function() {
+            document.getElementById('loadingOverlay').classList.remove('d-none');
+            document.getElementById('submitBtn').disabled = true;
+            document.getElementById('submitBtn').innerHTML = '<i class="fas fa-spinner fa-spin me-2"></i> Processing...';
+        });
+    </script>
+}
+
+<style>
+    .admin-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        margin-top: 2rem;
+        overflow: hidden;
+    }
+    .card-header {
+        padding: 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        background: rgba(0,0,0,0.2);
+    }
+    .card-body {
+        padding: 2rem;
+    }
+    .admin-input {
+        background: var(--bg-tertiary) !important;
+        border-color: var(--border-color) !important;
+        color: var(--text-primary) !important;
+    }
+    .admin-input:focus {
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.25) !important;
+    }
+    .uppercase {
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+    .smaller {
+        font-size: 0.75rem;
+    }
+</style>

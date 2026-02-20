@@ -1,0 +1,173 @@
+@{
+    Layout = null;
+}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Under Maintenance - DFlowScans</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" />
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --bg-dark: #0f172a;
+            --bg-darker: #020617;
+            --text-primary: #f8fafc;
+            --text-muted: #94a3b8;
+        }
+
+        body {
+            background-color: var(--bg-darker);
+            color: var(--text-primary);
+            font-family: 'Inter', sans-serif;
+            height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0;
+            overflow: hidden;
+        }
+
+        .maintenance-container {
+            text-align: center;
+            padding: 2rem;
+            max-width: 600px;
+            width: 100%;
+            z-index: 1;
+        }
+
+        .icon-wrapper {
+            font-size: 5rem;
+            color: var(--primary-color);
+            margin-bottom: 1.5rem;
+            animation: pulse 2s infinite;
+        }
+
+        h1 {
+            font-weight: 800;
+            font-size: 2.5rem;
+            margin-bottom: 1rem;
+            background: linear-gradient(to right, #6366f1, #a855f7);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        p {
+            color: var(--text-muted);
+            font-size: 1.1rem;
+            line-height: 1.6;
+            margin-bottom: 2rem;
+        }
+
+        .btn-home {
+            background-color: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.75rem 2rem;
+            border-radius: 0.5rem;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+        }
+
+        .btn-home:hover {
+            background-color: #4f46e5;
+            transform: translateY(-2px);
+            color: white;
+        }
+
+        .background-blobs {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            opacity: 0.5;
+        }
+
+        .blob {
+            position: absolute;
+            width: 400px;
+            height: 400px;
+            background: var(--primary-color);
+            filter: blur(100px);
+            border-radius: 50%;
+            opacity: 0.2;
+            animation: float 10s infinite alternate;
+        }
+
+        .blob-1 { top: -100px; right: -100px; background: #6366f1; }
+        .blob-2 { bottom: -100px; left: -100px; background: #a855f7; }
+
+        @@keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        @@keyframes float {
+            0% { transform: translate(0, 0); }
+            100% { transform: translate(50px, 50px); }
+        }
+
+        .status-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.5rem 1rem;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 100px;
+            font-size: 0.85rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            margin-bottom: 1.5rem;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #f59e0b;
+            border-radius: 50%;
+            margin-right: 8px;
+            box-shadow: 0 0 10px #f59e0b;
+        }
+    </style>
+</head>
+<body>
+    <div class="background-blobs">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <div class="maintenance-container">
+        <div class="status-badge">
+            <span class="status-dot"></span>
+            System Status: Under Maintenance
+        </div>
+        <div class="icon-wrapper">
+            <i class="fas fa-hammer"></i>
+        </div>
+        <h1>Under Maintenance</h1>
+        <p>
+            @if (ViewBag.IsDbError == true)
+            {
+                <text>We're having some trouble connecting to our database. Our team is already looking into it and we'll be back online shortly. Thank you for your patience!</text>
+            }
+            else
+            {
+                <text>We're currently performing some scheduled maintenance to improve your experience. We'll be back online in just a moment. Stay tuned!</text>
+            }
+        </p>
+        <div class="d-flex gap-3 justify-content-center">
+            <a href="/" class="btn-home">Try Again</a>
+            <a href="https://discord.gg/tyRD6Nn6Fr" target="_blank" class="btn btn-outline-light px-4 py-2" style="border-radius: 0.5rem; font-weight: 600;">
+                <i class="fab fa-discord me-2"></i>Discord
+            </a>
+        </div>
+    </div>
+</body>
+</html>

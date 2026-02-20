@@ -1,0 +1,272 @@
+@model AdminDashboardViewModel
+@using System.Text.Json
+@{
+    ViewData["Title"] = "Admin Dashboard";
+}
+
+@if (ViewBag.DatabaseFixNeeded == true)
+{
+    <div class="alert alert-warning border-0 shadow-sm mb-4">
+        <div class="d-flex align-items-center">
+            <div class="flex-shrink-0">
+                <i class="fas fa-exclamation-triangle fa-2x text-warning me-3"></i>
+            </div>
+            <div class="flex-grow-1">
+                <h5 class="alert-heading fw-bold mb-1">Database Update Required</h5>
+                <p class="mb-0 text-muted">The database schema is out of sync with the latest updates. Some statistics might not be accurate or available until the fixes are applied.</p>
+                @if (ViewBag.ChapterViewsColsMissing == true)
+                {
+                    <p class="small mb-0 mt-2"><i class="fas fa-info-circle me-1"></i> Missing tracking columns (Device, SessionId) in ChapterViews table.</p>
+                }
+            </div>
+            <div class="ms-auto">
+                <form asp-action="FixDatabase" method="post">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn btn-warning fw-bold">
+                        <i class="fas fa-magic me-1"></i> Apply Fixes
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+}
+
+<div class="row g-4 mb-4">
+    
+    <div class="col-md-3">
+        <div class="admin-card stat-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small fw-bold text-uppercase mb-1">Total Views</div>
+                        <h3 class="mb-0 fw-bold">@Model.TotalViews.ToString("N0")</h3>
+                        <div class="text-success small mt-2">
+                            <i class="fas fa-arrow-up me-1"></i>12% <span class="text-muted">vs last month</span>
+                        </div>
+                    </div>
+                    <div class="stat-icon bg-primary bg-opacity-10 text-primary rounded-3">
+                        <i class="fas fa-eye fa-lg"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="admin-card stat-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small fw-bold text-uppercase mb-1">Unique Visitors</div>
+                        <h3 class="mb-0 fw-bold">@Model.UniqueVisitors.ToString("N0")</h3>
+                        <div class="text-success small mt-2">
+                            <i class="fas fa-arrow-up me-1"></i>5.4% <span class="text-muted">vs last month</span>
+                        </div>
+                    </div>
+                    <div class="stat-icon bg-success bg-opacity-10 text-success rounded-3">
+                        <i class="fas fa-users fa-lg"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="admin-card stat-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small fw-bold text-uppercase mb-1">Total Mangas</div>
+                        <h3 class="mb-0 fw-bold">@Model.TotalManga.ToString("N0")</h3>
+                        <div class="text-primary small mt-2">
+                            <i class="fas fa-book me-1"></i>@Model.TotalChapters <span class="text-muted">total chapters</span>
+                        </div>
+                    </div>
+                    <div class="stat-icon bg-info bg-opacity-10 text-info rounded-3">
+                        <i class="fas fa-book-open fa-lg"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="col-md-3">
+        <div class="admin-card stat-card">
+            <div class="card-body">
+                <div class="d-flex align-items-center justify-content-between">
+                    <div>
+                        <div class="text-muted small fw-bold text-uppercase mb-1">Total Users</div>
+                        <h3 class="mb-0 fw-bold">@Model.TotalUsers.ToString("N0")</h3>
+                        <div class="text-warning small mt-2">
+                            <i class="fas fa-user-plus me-1"></i>@Model.NewUsersLast7Days <span class="text-muted">last 7 days</span>
+                        </div>
+                    </div>
+                    <div class="stat-icon bg-warning bg-opacity-10 text-warning rounded-3">
+                        <i class="fas fa-user-circle fa-lg"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4 mb-4">
+    
+    <div class="col-lg-8">
+        <div class="admin-card">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-chart-line me-2 text-primary"></i>Traffic Trend</h6>
+                <div class="dropdown">
+                    <button class="btn btn-sm btn-outline-secondary dropdown-toggle" type="button" data-bs-toggle="dropdown">
+                        @(ViewBag.CurrentPeriod ?? "Daily")
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-dark dropdown-menu-end">
+                        <li><a class="dropdown-item @(ViewBag.CurrentPeriod == "Daily" ? "active" : "")" href="?period=Daily">Daily</a></li>
+                        <li><a class="dropdown-item @(ViewBag.CurrentPeriod == "Weekly" ? "active" : "")" href="?period=Weekly">Weekly</a></li>
+                        <li><a class="dropdown-item @(ViewBag.CurrentPeriod == "Monthly" ? "active" : "")" href="?period=Monthly">Monthly</a></li>
+                        <li><a class="dropdown-item @(ViewBag.CurrentPeriod == "Yearly" ? "active" : "")" href="?period=Yearly">Yearly</a></li>
+                    </ul>
+                </div>
+            </div>
+            <div class="card-body">
+                <canvas id="trafficChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+
+    
+    <div class="col-lg-4">
+        <div class="admin-card">
+            <div class="card-header">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-pie-chart me-2 text-primary"></i>Device Distribution</h6>
+            </div>
+            <div class="card-body">
+                <canvas id="deviceChart" height="300"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row g-4">
+    
+    <div class="col-lg-12">
+        <div class="admin-card">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-fire me-2 text-danger"></i>Popular Chapters</h6>
+                <a asp-action="ChapterList" class="btn btn-sm btn-link text-primary text-decoration-none">View All</a>
+            </div>
+            <div class="table-responsive">
+                <table class="table admin-table align-middle">
+                    <thead>
+                        <tr>
+                            <th>Manga</th>
+                            <th>Chapter</th>
+                            <th class="text-center">Views</th>
+                            <th class="text-end">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var chapter in Model.PopularChapters)
+                        {
+                            <tr>
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <div class="fw-bold text-white text-truncate-1" style="max-width: 300px;">@chapter.MangaTitle</div>
+                                    </div>
+                                </td>
+                                <td>
+                                    <span class="badge bg-primary bg-opacity-10 text-primary px-3">
+                                        Chapter @(chapter.ChapterNumber % 1 == 0 ? chapter.ChapterNumber.ToString("0") : chapter.ChapterNumber.ToString("0.######").TrimEnd('0'))
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <span class="fw-bold">@chapter.Views.ToString("N0")</span>
+                                </td>
+                                <td class="text-end">
+                                    <a asp-action="ChapterList" asp-route-search="@chapter.MangaTitle" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-list"></i>
+                                    </a>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script>
+        // Traffic Chart
+        const trafficCtx = document.getElementById('trafficChart').getContext('2d');
+        new Chart(trafficCtx, {
+            type: 'line',
+            data: {
+                labels: @Html.Raw(JsonSerializer.Serialize(Model.TrafficLabels)),
+                datasets: [
+                    {
+                        label: 'Views',
+                        data: @Html.Raw(JsonSerializer.Serialize(Model.TrafficViews)),
+                        borderColor: '#4f46e5',
+                        backgroundColor: 'rgba(79, 70, 229, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    },
+                    {
+                        label: 'Visitors',
+                        data: @Html.Raw(JsonSerializer.Serialize(Model.TrafficVisitors)),
+                        borderColor: '#10b981',
+                        backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                        fill: true,
+                        tension: 0.4
+                    }
+                ]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                    legend: {
+                        display: true,
+                        position: 'top',
+                        labels: { color: '#94a3b8' }
+                    }
+                },
+                scales: {
+                    y: {
+                        grid: { color: 'rgba(255, 255, 255, 0.05)' },
+                        ticks: { color: '#94a3b8' }
+                    },
+                    x: {
+                        grid: { display: false },
+                        ticks: { color: '#94a3b8' }
+                    }
+                }
+            }
+        });
+
+        // Device Chart
+        const deviceCtx = document.getElementById('deviceChart').getContext('2d');
+        new Chart(deviceCtx, {
+            type: 'doughnut',
+            data: {
+                labels: @Html.Raw(JsonSerializer.Serialize(Model.DeviceLabels)),
+                datasets: [{
+                    data: @Html.Raw(JsonSerializer.Serialize(Model.DeviceCounts)),
+                    backgroundColor: ['#4f46e5', '#10b981', '#f59e0b'],
+                    borderWidth: 0
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                cutout: '75%',
+                plugins: {
+                    legend: {
+                        position: 'bottom',
+                        labels: { color: '#94a3b8', padding: 20 }
+                    }
+                }
+            }
+        });
+    </script>
+}

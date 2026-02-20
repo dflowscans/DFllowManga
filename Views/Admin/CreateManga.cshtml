@@ -1,0 +1,224 @@
+@model Manga
+@{
+    ViewData["Title"] = (Model != null && Model.Id > 0) ? "Edit Manga" : "Create New Manga";
+}
+
+<div class="admin-card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4 class="text-white mb-0">
+            <i class="fas @(Model?.Id > 0 ? "fa-edit" : "fa-plus-circle") me-2"></i>@ViewData["Title"]
+        </h4>
+        <a asp-action="MangaList" class="btn btn-sm btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Back to List
+        </a>
+    </div>
+
+    <div class="card-body">
+        <div class="row">
+            <div class="col-lg-8">
+                <form method="post">
+                    @Html.AntiForgeryToken()
+                    @if (Model != null && Model.Id > 0)
+                    {
+                        <input type="hidden" asp-for="Id" />
+                        <input type="hidden" asp-for="CreatedAt" />
+                    }
+
+                    <div class="mb-4">
+                        <label asp-for="Title" class="form-label text-white-50 small uppercase fw-bold">Title <span class="text-danger">*</span></label>
+                        <input asp-for="Title" class="form-control admin-input" placeholder="Enter manga title" required />
+                        <span asp-validation-for="Title" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Description" class="form-label text-white-50 small uppercase fw-bold">Description</label>
+                        <textarea asp-for="Description" class="form-control admin-input" rows="4" placeholder="Enter manga description"></textarea>
+                        <span asp-validation-for="Description" class="text-danger small"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label asp-for="Author" class="form-label text-white-50 small uppercase fw-bold">Author</label>
+                            <input asp-for="Author" class="form-control admin-input" placeholder="Author name" />
+                            <span asp-validation-for="Author" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label asp-for="Artist" class="form-label text-white-50 small uppercase fw-bold">Artist</label>
+                            <input asp-for="Artist" class="form-control admin-input" placeholder="Artist name" />
+                            <span asp-validation-for="Artist" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label asp-for="ImageUrl" class="form-label text-white-50 small uppercase fw-bold">Cover Image URL</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark border-secondary text-white-50"><i class="fas fa-image"></i></span>
+                                <input asp-for="ImageUrl" class="form-control admin-input" placeholder="https://..." />
+                            </div>
+                            <span asp-validation-for="ImageUrl" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label asp-for="BannerUrl" class="form-label text-white-50 small uppercase fw-bold">Banner Image URL</label>
+                            <div class="input-group">
+                                <span class="input-group-text bg-dark border-secondary text-white-50"><i class="fas fa-panorama"></i></span>
+                                <input asp-for="BannerUrl" class="form-control admin-input" placeholder="https://..." />
+                            </div>
+                            <span asp-validation-for="BannerUrl" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label asp-for="Type" class="form-label text-white-50 small uppercase fw-bold">Type</label>
+                            <select asp-for="Type" class="form-select admin-input">
+                                <option value="">Select Type</option>
+                                <option value="Manga">Manga</option>
+                                <option value="Manhua">Manhua</option>
+                                <option value="Manhwa">Manhwa</option>
+                            </select>
+                            <span asp-validation-for="Type" class="text-danger small"></span>
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label asp-for="Status" class="form-label text-white-50 small uppercase fw-bold">Status</label>
+                            <select asp-for="Status" class="form-select admin-input">
+                                <option value="Ongoing">Ongoing</option>
+                                <option value="Completed">Completed</option>
+                                <option value="Dropped">Dropped</option>
+                                <option value="On Hold">On Hold</option>
+                                <option value="Coming Soon">Coming Soon</option>
+                            </select>
+                            <span asp-validation-for="Status" class="text-danger small"></span>
+                        </div>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Genre" class="form-label text-white-50 small uppercase fw-bold">Genres (comma separated)</label>
+                        <input asp-for="Genre" class="form-control admin-input" placeholder="Action, Adventure, Shounen" />
+                        <span asp-validation-for="Genre" class="text-danger small"></span>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-md-6 mb-4">
+                            <label asp-for="BannerPositionX" class="form-label text-white-50 small uppercase fw-bold">Banner Position X: <span id="xVal" class="text-primary">@(Model?.BannerPositionX ?? 0)</span>%</label>
+                            <input asp-for="BannerPositionX" type="range" min="0" max="100" class="form-range custom-range" oninput="document.getElementById('xVal').innerText = this.value" />
+                        </div>
+                        <div class="col-md-6 mb-4">
+                            <label asp-for="BannerPositionY" class="form-label text-white-50 small uppercase fw-bold">Banner Position Y: <span id="yVal" class="text-primary">@(Model?.BannerPositionY ?? 0)</span>%</label>
+                            <input asp-for="BannerPositionY" type="range" min="0" max="100" class="form-range custom-range" oninput="document.getElementById('yVal').innerText = this.value" />
+                        </div>
+                    </div>
+
+                    <div class="row mb-4 p-3 rounded bg-dark bg-opacity-25 border border-secondary border-opacity-25 mx-0">
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <div class="form-check form-switch">
+                                <input asp-for="HasTitleShadow" class="form-check-input" type="checkbox" id="titleShadow">
+                                <label class="form-check-label text-white" for="titleShadow">Title Shadow</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-3 mb-md-0">
+                            <label asp-for="TitleShadowSize" class="form-label text-white-50 small uppercase fw-bold mb-1">Shadow Size</label>
+                            <input asp-for="TitleShadowSize" type="range" min="0" max="40" class="form-range custom-range" />
+                        </div>
+                        <div class="col-md-4">
+                            <label asp-for="TitleShadowOpacity" class="form-label text-white-50 small uppercase fw-bold mb-1">Shadow Opacity</label>
+                            <input asp-for="TitleShadowOpacity" type="range" min="0" max="2" step="0.01" class="form-range custom-range" />
+                        </div>
+                    </div>
+
+                    <div class="row align-items-end">
+                        <div class="col-md-4 mb-4">
+                            <div class="form-check form-switch mb-2">
+                                <input asp-for="IsFeatured" class="form-check-input" type="checkbox" id="featured">
+                                <label class="form-check-label text-white" for="featured">Featured Manga</label>
+                            </div>
+                        </div>
+                        <div class="col-md-4 mb-4">
+                            <div class="form-check form-switch mb-2">
+                                <input asp-for="IsSuggestive" class="form-check-input" type="checkbox" id="suggestive">
+                                <label class="form-check-label text-white" for="suggestive">Suggestive Content</label>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-top border-secondary">
+                        <button type="submit" class="btn btn-primary px-4 py-2 fw-bold">
+                            <i class="fas fa-save me-2"></i>@(Model?.Id > 0 ? "Update Manga" : "Create Manga")
+                        </button>
+                        <a asp-action="MangaList" class="btn btn-outline-secondary px-4 py-2 ms-2">Cancel</a>
+                    </div>
+                </form>
+            </div>
+
+            <div class="col-lg-4 mt-4 mt-lg-0">
+                <div class="card bg-dark border-secondary h-100" style="background: var(--bg-tertiary) !important; border-color: var(--border-color) !important;">
+                    <div class="card-body">
+                        <h5 class="card-title text-white mb-4"><i class="fas fa-lightbulb text-warning me-2"></i>Manga Tips</h5>
+                        
+                        <div class="mb-4">
+                            <h6 class="text-info small uppercase fw-bold mb-2">Images</h6>
+                            <ul class="list-unstyled text-white-50 small mb-0">
+                                <li class="mb-2"><i class="fas fa-check me-2 text-success"></i> <strong>Cover:</strong> Use 3:4 ratio for best results.</li>
+                                <li class="mb-2"><i class="fas fa-check me-2 text-success"></i> <strong>Banner:</strong> Minimum 1200px width.</li>
+                                <li class="mb-2"><i class="fas fa-check me-2 text-success"></i> <strong>Positioning:</strong> Use sliders to center the focus.</li>
+                            </ul>
+                        </div>
+
+                        <div class="mb-4">
+                            <h6 class="text-info small uppercase fw-bold mb-2">Metadata</h6>
+                            <ul class="list-unstyled text-white-50 small mb-0">
+                                <li class="mb-2"><i class="fas fa-check me-2 text-success"></i> <strong>Genres:</strong> Use commas (e.g., Action, Comedy).</li>
+                                <li class="mb-2"><i class="fas fa-check me-2 text-success"></i> <strong>Status:</strong> Keeps readers informed on updates.</li>
+                            </ul>
+                        </div>
+
+                        <div class="alert alert-info border-info bg-dark bg-opacity-50 small mb-0">
+                            <i class="fas fa-info-circle me-2"></i> After creation, you can start adding chapters from the manga list.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .admin-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        margin-bottom: 2rem;
+    }
+    .card-header {
+        padding: 1.25rem;
+        border-bottom: 1px solid var(--border-color);
+        background: rgba(0,0,0,0.1);
+    }
+    .card-body {
+        padding: 1.25rem;
+    }
+    .admin-input {
+        background: var(--bg-tertiary) !important;
+        border-color: var(--border-color) !important;
+        color: var(--text-primary) !important;
+    }
+    .admin-input:focus {
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 0 0 0.25rem rgba(var(--primary-rgb), 0.25) !important;
+    }
+    .custom-range::-webkit-slider-runnable-track {
+        background: var(--bg-tertiary);
+        border-radius: 10px;
+    }
+    .custom-range::-webkit-slider-thumb {
+        background: var(--primary-color);
+    }
+    .uppercase {
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+</style>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}

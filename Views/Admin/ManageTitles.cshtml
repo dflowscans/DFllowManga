@@ -1,0 +1,261 @@
+@model List<UserTitle>
+@{
+    ViewData["Title"] = "Manage User Titles";
+}
+
+<div class="admin-card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4 class="text-white mb-0">
+            <i class="fas fa-trophy me-2 text-primary"></i>Manage User Titles
+        </h4>
+        <button type="button" class="btn btn-sm btn-primary" data-bs-toggle="modal" data-bs-target="#createModal">
+            <i class="fas fa-plus me-1"></i> Add Title
+        </button>
+    </div>
+    
+    <div class="card-body">
+        <div class="alert alert-info border-info bg-dark bg-opacity-50 mb-4">
+            <div class="d-flex">
+                <i class="fas fa-info-circle fs-4 me-3 mt-1"></i>
+                <div>
+                    <h6 class="alert-heading fw-bold mb-1">Title Management Guide</h6>
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <ul class="mb-0 text-white-50 small">
+                                <li><strong>Title Name:</strong> Short names (max 20 chars) look best.</li>
+                                <li><strong>Color (Hex):</strong> Use valid hex codes (e.g. <code>#FFD700</code>).</li>
+                                <li><strong>Level Req:</strong> Minimum level required to unlock.</li>
+                            </ul>
+                        </div>
+                        <div class="col-md-6">
+                            <ul class="mb-0 text-white-50 small">
+                                <li><strong>Visibility:</strong> Styled badges under profile pictures.</li>
+                                <li><strong>Equipping:</strong> Users select active title in Profile.</li>
+                                <li><strong>Contrast:</strong> Bright colors stand out best on dark theme.</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="row g-4">
+            @foreach (var title in Model)
+            {
+                <div class="col-6 col-md-4 col-lg-3">
+                    <div class="title-item-card h-100">
+                        <div class="card-body text-center d-flex flex-column p-3">
+                            <div class="title-preview-container mb-3">
+                                <div class="title-preview-badge" style="border-color: @title.Color; color: @title.Color;">
+                                    @title.Name
+                                </div>
+                            </div>
+                            
+                            <h6 class="text-white text-truncate mb-2" title="@title.Name">@title.Name</h6>
+                            
+                            <div class="d-flex flex-wrap justify-content-center gap-1 mb-3">
+                                <span class="badge bg-primary smaller uppercase">LV @title.LevelRequirement</span>
+                                @if (title.IsLocked)
+                                {
+                                    <span class="badge bg-danger smaller uppercase"><i class="fas fa-lock me-1"></i>Locked</span>
+                                }
+                            </div>
+                            
+                            <div class="d-flex justify-content-center gap-2 mt-auto pt-2 border-top border-secondary border-opacity-25">
+                                <button class="btn btn-sm btn-outline-primary" 
+                                        data-title='@Html.Raw(System.Text.Json.JsonSerializer.Serialize(title))'
+                                        onclick="editTitle(this)" title="Edit">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+                                <form asp-action="DeleteTitle" method="post" onsubmit="return confirm('Delete this title?');" class="d-inline">
+                                    @Html.AntiForgeryToken()
+                                    <input type="hidden" name="id" value="@title.Id" />
+                                    <button type="submit" class="btn btn-sm btn-outline-danger" title="Delete">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </form>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
+
+<style>
+    .admin-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+    .card-header {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        background: rgba(0,0,0,0.2);
+    }
+    .card-body {
+        padding: 1.5rem;
+    }
+    .title-item-card {
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        transition: transform 0.2s, border-color 0.2s;
+    }
+    .title-item-card:hover {
+        transform: translateY(-4px);
+        border-color: var(--primary-color);
+    }
+    .title-preview-container {
+        height: 60px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(0,0,0,0.2);
+        border-radius: 8px;
+    }
+    .title-preview-badge {
+        padding: 0.25rem 0.75rem;
+        border: 1px solid;
+        border-radius: 4px;
+        font-weight: bold;
+        font-size: 0.85rem;
+        background: rgba(0,0,0,0.3);
+    }
+    .admin-input {
+        background: var(--bg-tertiary) !important;
+        border-color: var(--border-color) !important;
+        color: var(--text-primary) !important;
+    }
+    .admin-input:focus {
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.25) !important;
+    }
+    .smaller {
+        font-size: 0.65rem;
+    }
+    .uppercase {
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+</style>
+
+
+<div class="modal fade" id="createModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark border-secondary">
+            <form asp-action="CreateTitle" method="post">
+                @Html.AntiForgeryToken()
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title text-white">Add New Title</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label text-white-50 small uppercase fw-bold">Title Name</label>
+                        <input type="text" name="Name" class="form-control admin-input" placeholder="e.g. Master Reader" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-white-50 small uppercase fw-bold">Color (Hex)</label>
+                        <div class="input-group">
+                            <input type="text" name="Color" class="form-control admin-input" value="#ffffff" placeholder="#ffffff" required />
+                            <input type="color" class="form-control form-control-color admin-input border-start-0" id="colorPickerCreate" value="#ffffff" title="Choose color">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-white-50 small uppercase fw-bold">Level Requirement</label>
+                        <input type="number" name="LevelRequirement" class="form-control admin-input" value="1" min="1" required />
+                    </div>
+                    <div class="form-check form-switch mb-3">
+                        <input type="checkbox" name="IsLocked" class="form-check-input" id="isLockedCreate" value="true" />
+                        <label class="form-check-label text-white" for="isLockedCreate">Is Locked (Manual Award Only)?</label>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Create Title</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+
+<div class="modal fade" id="editModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content bg-dark border-secondary">
+            <form asp-action="EditTitle" method="post">
+                @Html.AntiForgeryToken()
+                <input type="hidden" name="Id" id="editId" />
+                <div class="modal-header border-secondary">
+                    <h5 class="modal-title text-white">Edit Title</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label class="form-label text-white-50 small uppercase fw-bold">Title Name</label>
+                        <input type="text" name="Name" id="editName" class="form-control admin-input" required />
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-white-50 small uppercase fw-bold">Color (Hex)</label>
+                        <div class="input-group">
+                            <input type="text" name="Color" id="editColor" class="form-control admin-input" required />
+                            <input type="color" class="form-control form-control-color admin-input border-start-0" id="colorPickerEdit" title="Choose color">
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label class="form-label text-white-50 small uppercase fw-bold">Level Requirement</label>
+                        <input type="number" name="LevelRequirement" id="editLevelRequirement" class="form-control admin-input" min="1" required />
+                    </div>
+                    <div class="form-check form-switch mb-3">
+                        <input type="checkbox" name="IsLocked" class="form-check-input" id="editIsLocked" value="true" />
+                        <label class="form-check-label text-white" for="editIsLocked">Is Locked (Manual Award Only)?</label>
+                    </div>
+                </div>
+                <div class="modal-footer border-secondary">
+                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Save Changes</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Color picker sync
+        document.getElementById('colorPickerCreate').addEventListener('input', function() {
+            document.querySelector('#createModal input[name="Color"]').value = this.value;
+        });
+        document.querySelector('#createModal input[name="Color"]').addEventListener('input', function() {
+            if(/^#[0-9A-F]{6}$/i.test(this.value)) {
+                document.getElementById('colorPickerCreate').value = this.value;
+            }
+        });
+        
+        document.getElementById('colorPickerEdit').addEventListener('input', function() {
+            document.getElementById('editColor').value = this.value;
+        });
+        document.getElementById('editColor').addEventListener('input', function() {
+            if(/^#[0-9A-F]{6}$/i.test(this.value)) {
+                document.getElementById('colorPickerEdit').value = this.value;
+            }
+        });
+
+        function editTitle(btn) {
+            const title = JSON.parse(btn.getAttribute('data-title'));
+            
+            document.getElementById('editId').value = title.Id || title.id;
+            document.getElementById('editName').value = title.Name || title.name;
+            document.getElementById('editColor').value = title.Color || title.color;
+            document.getElementById('colorPickerEdit').value = title.Color || title.color;
+            document.getElementById('editLevelRequirement').value = title.LevelRequirement || title.levelRequirement;
+            document.getElementById('editIsLocked').checked = title.IsLocked || title.isLocked || false;
+            
+            new bootstrap.Modal(document.getElementById('editModal')).show();
+        }
+    </script>
+}

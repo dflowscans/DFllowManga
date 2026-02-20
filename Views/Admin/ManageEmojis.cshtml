@@ -1,0 +1,200 @@
+@model List<MangaReader.Controllers.EmojiModel>
+@{
+    ViewData["Title"] = "Manage Emojis";
+}
+
+<div class="admin-card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4 class="text-white mb-0">
+            <i class="fas fa-smile me-2 text-primary"></i>Manage Custom Emojis
+        </h4>
+    </div>
+    
+    <div class="card-body">
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="alert alert-success alert-dismissible fade show bg-dark border-success text-success mb-4" role="alert">
+                <i class="fas fa-check-circle me-2"></i>@TempData["SuccessMessage"]
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        @if (TempData["ErrorMessage"] != null)
+        {
+            <div class="alert alert-danger alert-dismissible fade show bg-dark border-danger text-danger mb-4" role="alert">
+                <i class="fas fa-exclamation-circle me-2"></i>@TempData["ErrorMessage"]
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert" aria-label="Close"></button>
+            </div>
+        }
+
+        <div class="row g-4">
+            <div class="col-md-7">
+                <div class="emoji-config-card h-100">
+                    <div class="card-header d-flex justify-content-between align-items-center">
+                        <h6 class="text-white mb-0">Emoji Configuration (JSON)</h6>
+                        <button type="button" class="btn btn-outline-info btn-sm" onclick="formatJson()">
+                            <i class="fas fa-code me-1"></i>Format JSON
+                        </button>
+                    </div>
+                    <div class="card-body">
+                        <form asp-action="ManageEmojis" method="post" id="emojiForm">
+                            @Html.AntiForgeryToken()
+                            <textarea name="emojisJson" id="emojisJson" class="form-control admin-input font-monospace mb-3" rows="18">@Html.Raw(System.Text.Json.JsonSerializer.Serialize(Model, new System.Text.Json.JsonSerializerOptions { WriteIndented = true }))</textarea>
+                            <div class="d-flex gap-2">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save me-2"></i>Save Changes
+                                </button>
+                                <a asp-action="Index" class="btn btn-outline-secondary">
+                                    <i class="fas fa-arrow-left me-1"></i>Back
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-5">
+                <div class="emoji-preview-card h-100">
+                    <div class="card-header">
+                        <h6 class="text-white mb-0">Preview & Instructions</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="alert alert-info border-info bg-dark bg-opacity-50 mb-4">
+                            <div class="d-flex">
+                                <i class="fas fa-info-circle fs-5 me-2 mt-1"></i>
+                                <div>
+                                    <h6 class="alert-heading fw-bold mb-1 small uppercase">Instructions</h6>
+                                    <ul class="mb-0 text-white-50 small ps-3">
+                                        <li><strong>Code:</strong> Text to replace (e.g., <code>:happy:</code>).</li>
+                                        <li><strong>URL:</strong> Link to image (24x24 or 32x32 recommended).</li>
+                                        <li><strong>Size:</strong> Display size in pixels (default 24).</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+
+                        <h6 class="text-white-50 small fw-bold mb-3 uppercase">Live Preview</h6>
+                        <div id="emojiPreview" class="d-flex flex-wrap gap-2 overflow-auto custom-scrollbar" style="max-height: 400px;">
+                            @foreach (var emoji in Model)
+                            {
+                                <div class="emoji-item">
+                                    <img src="@emoji.url" alt="@emoji.code" style="width: @(emoji.size)px; height: @(emoji.size)px;" class="mb-2" />
+                                    <div class="emoji-code"><code>@emoji.code</code></div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .admin-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+    .card-header {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        background: rgba(0,0,0,0.2);
+    }
+    .card-body {
+        padding: 1.5rem;
+    }
+    .emoji-config-card, .emoji-preview-card {
+        background: var(--bg-tertiary);
+        border: 1px solid var(--border-color);
+        border-radius: 10px;
+        overflow: hidden;
+    }
+    .admin-input {
+        background: #0f172a !important;
+        border-color: var(--border-color) !important;
+        color: var(--text-primary) !important;
+        font-size: 0.85rem;
+    }
+    .admin-input:focus {
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.25) !important;
+    }
+    .font-monospace { 
+        font-family: 'Fira Code', 'Cascadia Code', 'JetBrains Mono', monospace !important; 
+    }
+    .uppercase {
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    .emoji-item {
+        width: 80px;
+        height: 80px;
+        background: #0f172a;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        padding: 0.5rem;
+        transition: border-color 0.2s;
+    }
+    .emoji-item:hover {
+        border-color: var(--primary-color);
+    }
+    .emoji-code {
+        font-size: 0.65rem;
+        color: var(--text-muted);
+        max-width: 100%;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+    .custom-scrollbar::-webkit-scrollbar {
+        width: 6px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-track {
+        background: rgba(0,0,0,0.1);
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb {
+        background: var(--border-color);
+        border-radius: 10px;
+    }
+    .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+        background: var(--text-muted);
+    }
+</style>
+
+@section Scripts {
+    <script>
+        function formatJson() {
+            const textarea = document.getElementById('emojisJson');
+            try {
+                const obj = JSON.parse(textarea.value);
+                textarea.value = JSON.stringify(obj, null, 2);
+            } catch (e) {
+                alert('Invalid JSON format. Please fix it before formatting.');
+            }
+        }
+
+        document.getElementById('emojisJson').addEventListener('input', function() {
+            const preview = document.getElementById('emojiPreview');
+            try {
+                const data = JSON.parse(this.value);
+                let html = '';
+                data.forEach(emoji => {
+                    html += `
+                        <div class="text-center p-2 border border-secondary rounded bg-dark d-flex flex-column align-items-center justify-content-center" style="width: 80px; height: 80px; background: #0f172a !important; border-color: var(--border-color) !important;">
+                            <img src="${emoji.url}" alt="${emoji.code}" style="width: ${emoji.size}px; height: ${emoji.size}px;" class="mb-2" />
+                            <div class="small text-white-50" style="font-size: 0.7rem;"><code>${emoji.code}</code></div>
+                        </div>`;
+                });
+                preview.innerHTML = html;
+            } catch (e) {
+                // Invalid JSON, don't update preview
+            }
+        });
+    </script>
+}

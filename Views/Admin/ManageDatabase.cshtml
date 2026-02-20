@@ -1,0 +1,84 @@
+@{
+    ViewData["Title"] = "Database Management";
+}
+
+<div class="row g-4">
+    <div class="col-lg-12">
+        <div class="admin-card">
+            <div class="card-header d-flex align-items-center justify-content-between">
+                <h6 class="mb-0 fw-bold"><i class="fas fa-tools me-2 text-primary"></i>Database Controls</h6>
+            </div>
+            <div class="card-body">
+                <div class="row g-4">
+                    <!-- Maintenance Mode -->
+                    <div class="col-md-4">
+                        <div class="p-3 border border-white-5 rounded-3 bg-white-2">
+                            <h6 class="fw-bold mb-3"><i class="fas fa-exclamation-triangle text-warning me-2"></i>Maintenance Mode</h6>
+                            <p class="small text-muted mb-3">When enabled, users will see an "Under Maintenance" message and won't be able to access the site.</p>
+                            <form asp-action="ToggleMaintenance" method="post">
+                                @Html.AntiForgeryToken()
+                                <input type="hidden" name="enabled" value="@((ViewBag.IsMaintenance ?? false) ? "false" : "true")" />
+                                <button type="submit" class="btn @((ViewBag.IsMaintenance ?? false) ? "btn-danger" : "btn-success") w-100 fw-bold">
+                                    <i class="fas @((ViewBag.IsMaintenance ?? false) ? "fa-toggle-on" : "fa-toggle-off") me-2"></i>
+                                    @((ViewBag.IsMaintenance ?? false) ? "Disable Maintenance" : "Enable Maintenance")
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Database Fixes -->
+                    <div class="col-md-4">
+                        <div class="p-3 border border-white-5 rounded-3 bg-white-2">
+                            <h6 class="fw-bold mb-3"><i class="fas fa-magic text-info me-2"></i>Database Fixes</h6>
+                            <p class="small text-muted mb-3">Automatically apply schema fixes and ensure all tables and columns are correctly created.</p>
+                            <form asp-action="FixDatabase" method="post">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-info w-100 fw-bold text-white">
+                                    <i class="fas fa-wrench me-2"></i>Apply Schema Fixes
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Backup -->
+                    <div class="col-md-4">
+                        <div class="p-3 border border-white-5 rounded-3 bg-white-2">
+                            <h6 class="fw-bold mb-3"><i class="fas fa-file-export text-success me-2"></i>Backup (JSON)</h6>
+                            <p class="small text-muted mb-3">Download a full backup of the database in JSON format. Includes Mangas, Chapters, Users, etc.</p>
+                            <form asp-action="ExportDatabase" method="post">
+                                @Html.AntiForgeryToken()
+                                <button type="submit" class="btn btn-success w-100 fw-bold">
+                                    <i class="fas fa-download me-2"></i>Download Backup
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+
+                <hr class="my-4 border-white-10">
+
+                <!-- Restore -->
+                <div class="row">
+                    <div class="col-md-6">
+                        <div class="p-4 border border-white-5 rounded-3 bg-white-2">
+                            <h6 class="fw-bold mb-3"><i class="fas fa-file-import text-danger me-2"></i>Restore from Backup</h6>
+                            <div class="alert alert-danger bg-danger bg-opacity-10 border-danger border-opacity-20 text-danger small mb-3">
+                                <i class="fas fa-exclamation-circle me-2"></i><strong>Warning:</strong> Restoring will <strong>DELETE</strong> all current data and replace it with the backup content. This action cannot be undone.
+                            </div>
+                            <form asp-action="ImportDatabase" method="post" enctype="multipart/form-data">
+                                @Html.AntiForgeryToken()
+                                <div class="mb-3">
+                                    <label class="form-label small fw-bold">Select Backup File (.json)</label>
+                                    <input type="file" name="file" class="form-control bg-dark border-white-10 text-white" accept=".json" required />
+                                </div>
+                                <button type="submit" class="btn btn-danger fw-bold" onclick="return confirm('Are you absolutely sure? This will wipe the current database!')">
+                                    <i class="fas fa-upload me-2"></i>Restore Database
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>

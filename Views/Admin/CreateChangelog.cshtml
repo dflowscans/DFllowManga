@@ -1,0 +1,128 @@
+@model ChangelogEntry
+@{
+    ViewData["Title"] = (Model != null && Model.Id > 0) ? "Edit Changelog" : "Create Changelog";
+}
+
+<div class="admin-card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h4 class="text-white mb-0">
+            <i class="fas @(Model?.Id > 0 ? "fa-edit" : "fa-plus-circle") me-2"></i>@ViewData["Title"]
+        </h4>
+        <a asp-action="ChangelogList" class="btn btn-sm btn-secondary">
+            <i class="fas fa-arrow-left me-1"></i> Back to List
+        </a>
+    </div>
+
+    <div class="card-body">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <form asp-action="@(Model?.Id > 0 ? "EditChangelog" : "CreateChangelog")" method="post">
+                    @Html.AntiForgeryToken()
+                    <div asp-validation-summary="ModelOnly" class="text-danger mb-4"></div>
+                    
+                    @if (Model?.Id > 0)
+                    {
+                        <input type="hidden" asp-for="Id" />
+                    }
+
+                    <div class="mb-4">
+                        <label asp-for="Title" class="form-label text-white small uppercase fw-bold">Title <span class="text-danger">*</span></label>
+                        <input asp-for="Title" class="form-control admin-input" placeholder="e.g., v1.1.0 - New Features" required />
+                        <span asp-validation-for="Title" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="CreatedAt" class="form-label text-white small uppercase fw-bold">Release Date <span class="text-danger">*</span></label>
+                        <input asp-for="CreatedAt" type="datetime-local" class="form-control admin-input" value="@(Model?.Id > 0 ? Model.CreatedAt.ToString("yyyy-MM-ddTHH:mm") : DateTime.Now.ToString("yyyy-MM-ddTHH:mm"))" required />
+                        <span asp-validation-for="CreatedAt" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mb-4">
+                        <label asp-for="Content" class="form-label text-white small uppercase fw-bold">Content (Markdown supported) <span class="text-danger">*</span></label>
+                        <textarea asp-for="Content" class="form-control admin-input" rows="12" placeholder="Describe the changes..." required></textarea>
+                        <span asp-validation-for="Content" class="text-danger small"></span>
+                    </div>
+
+                    <div class="mt-4 pt-3 border-top border-secondary">
+                        <button type="submit" class="btn btn-primary px-4 py-2 fw-bold">
+                            <i class="fas fa-save me-2"></i>@(Model?.Id > 0 ? "Update Entry" : "Create Entry")
+                        </button>
+                        <a asp-action="ChangelogList" class="btn btn-outline-secondary px-4 py-2 ms-2">Cancel</a>
+                    </div>
+                </form>
+            </div>
+
+            <div class="col-lg-4 mt-4 mt-lg-0">
+                <div class="card bg-dark border-secondary h-100" style="background: var(--bg-tertiary) !important; border-color: var(--border-color) !important;">
+                    <div class="card-body">
+                        <h5 class="card-title text-white mb-4"><i class="fas fa-lightbulb text-warning me-2"></i>Markdown Tips</h5>
+                        
+                        <div class="mb-4">
+                            <h6 class="text-info small uppercase fw-bold mb-2">Text Formatting</h6>
+                            <ul class="list-unstyled text-white-50 small mb-0">
+                                <li class="mb-2"><code>**bold**</code> for strong text</li>
+                                <li class="mb-2"><code>*italic*</code> for emphasis</li>
+                                <li class="mb-2"><code># Header</code> for main titles</li>
+                                <li class="mb-2"><code>## Subheader</code> for sections</li>
+                            </ul>
+                        </div>
+
+                        <div class="mb-4">
+                            <h6 class="text-info small uppercase fw-bold mb-2">Lists</h6>
+                            <ul class="list-unstyled text-white-50 small mb-0">
+                                <li class="mb-2"><code>- Item</code> for bullet points</li>
+                                <li class="mb-2"><code>1. Item</code> for numbered lists</li>
+                            </ul>
+                        </div>
+
+                        <div class="alert alert-info border-info bg-dark bg-opacity-50 small mb-0">
+                            <i class="fas fa-info-circle me-2"></i> Changelog entries are visible to all users on the home page.
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .admin-card {
+        background: var(--bg-secondary);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        margin-bottom: 2rem;
+        overflow: hidden;
+    }
+    .card-header {
+        padding: 1.25rem 1.5rem;
+        border-bottom: 1px solid var(--border-color);
+        background: rgba(0,0,0,0.2);
+    }
+    .card-body {
+        padding: 1.5rem;
+    }
+    .admin-input {
+        background: var(--bg-tertiary) !important;
+        border-color: var(--border-color) !important;
+        color: var(--text-primary) !important;
+    }
+    .admin-input:focus {
+        border-color: var(--primary-color) !important;
+        box-shadow: 0 0 0 0.25rem rgba(99, 102, 241, 0.25) !important;
+    }
+    .uppercase {
+        text-transform: uppercase;
+        letter-spacing: 0.8px;
+        font-size: 0.75rem;
+    }
+    code {
+        background: rgba(0,0,0,0.3);
+        padding: 0.1rem 0.3rem;
+        border-radius: 4px;
+        color: var(--accent);
+    }
+</style>
+
+@section Scripts {
+    @{await Html.RenderPartialAsync("_ValidationScriptsPartial");}
+}
